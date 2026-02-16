@@ -7,10 +7,13 @@ export default function Home() {
         <h1 className="text-5xl font-bold tracking-tight mb-4">
           Pincer<span className="text-[var(--primary)]">Pay</span>
         </h1>
+        <p className="text-lg text-[var(--muted-foreground)] mb-2">
+          The payment gateway for the agentic economy.
+        </p>
         <p className="text-xl text-[var(--muted-foreground)] mb-8">
-          On-chain USDC payments for AI agents.
+          Accept payments from AI agents.
           <br />
-          No card rails. Instant settlement. Every chain.
+          Add a few lines of code. Settle instantly in USDC.
         </p>
         <div className="flex gap-4 justify-center">
           <Link
