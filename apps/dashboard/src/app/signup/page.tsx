@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { useSupabase } from "@/lib/supabase/provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,13 +12,12 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = useSupabase();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-
-    const supabase = createSupabaseBrowser();
     const { error } = await supabase.auth.signUp({
       email,
       password,

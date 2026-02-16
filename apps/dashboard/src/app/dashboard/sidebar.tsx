@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { useSupabase } from "@/lib/supabase/provider";
 
 const navItems = [
   { href: "/dashboard", label: "Overview" },
@@ -15,6 +15,7 @@ const navItems = [
 export function Sidebar({ email }: { email: string }) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = useSupabase();
 
   const isActive = (href: string) =>
     href === "/dashboard"
@@ -22,7 +23,6 @@ export function Sidebar({ email }: { email: string }) {
       : pathname.startsWith(href);
 
   async function handleLogout() {
-    const supabase = createSupabaseBrowser();
     await supabase.auth.signOut();
     router.push("/login");
   }
