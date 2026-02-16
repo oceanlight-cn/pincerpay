@@ -1,5 +1,5 @@
 import { boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { merchants } from "./merchants";
+import { merchants } from "./merchants.js";
 
 export const transactions = pgTable(
   "transactions",
