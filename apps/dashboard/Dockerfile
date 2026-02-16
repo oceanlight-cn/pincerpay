@@ -22,12 +22,15 @@ COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY . .
 RUN pnpm --filter @pincerpay/core build
-RUN pnpm --filter @pincerpay/db build
+RUN pnpm --filter @pincerpay/db build \
+    && grep -q 'schema/index.js' packages/db/dist/index.js \
+    || (echo 'ASSERT FAILED: db/dist/index.js missing .js extensions' && cat packages/db/dist/index.js && exit 1)
 RUN pnpm --filter @pincerpay/dashboard build
 
 FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/apps/dashboard/.next/standalone ./
 COPY --from=builder /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
 

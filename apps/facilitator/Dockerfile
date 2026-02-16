@@ -18,7 +18,9 @@ COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY . .
 RUN pnpm --filter @pincerpay/core build
-RUN pnpm --filter @pincerpay/db build
+RUN pnpm --filter @pincerpay/db build \
+    && grep -q 'schema/index.js' packages/db/dist/index.js \
+    || (echo 'ASSERT FAILED: db/dist/index.js missing .js extensions' && cat packages/db/dist/index.js && exit 1)
 RUN pnpm --filter @pincerpay/facilitator build
 
 FROM base AS runner
