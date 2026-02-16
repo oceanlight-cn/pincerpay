@@ -13,6 +13,7 @@ export function createDb(connectionString: string, options?: { serverless?: bool
     idle_timeout: 20,
     connect_timeout: 10,
     prepare: isPooler ? false : true,
+    ssl: isPooler ? "require" : false,
   });
 
   const db = drizzle(client, { schema });
