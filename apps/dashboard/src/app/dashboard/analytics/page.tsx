@@ -1,7 +1,8 @@
 import { getDb } from "@/lib/db";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { merchants, transactions } from "@pincerpay/db";
-import { eq, sql, and, gte, desc } from "drizzle-orm";
+import { eq, sql, and, gte } from "drizzle-orm";
+import { VolumeByChainChart, DailyVolumeChart } from "./charts";
 
 async function getMerchantId(authUserId: string): Promise<string | null> {
   const db = getDb();
@@ -70,21 +71,7 @@ export default async function AnalyticsPage() {
           {volumeByChain.length === 0 ? (
             <p className="text-[var(--muted-foreground)] text-sm">No data yet</p>
           ) : (
-            <div className="space-y-3">
-              {volumeByChain.map((row) => (
-                <div key={row.chainId} className="flex justify-between items-center">
-                  <span className="text-sm font-mono">{row.chainId}</span>
-                  <div className="text-right">
-                    <p className="font-bold">
-                      ${(Number(row.volume) / 1_000_000).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-[var(--muted-foreground)]">
-                      {row.count} txns
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <VolumeByChainChart data={volumeByChain} />
           )}
         </div>
 
@@ -94,17 +81,7 @@ export default async function AnalyticsPage() {
           {dailyVolume.length === 0 ? (
             <p className="text-[var(--muted-foreground)] text-sm">No data yet</p>
           ) : (
-            <div className="space-y-2">
-              {dailyVolume.map((row) => {
-                const usdc = Number(row.volume) / 1_000_000;
-                return (
-                  <div key={row.date} className="flex justify-between items-center text-sm">
-                    <span className="text-[var(--muted-foreground)]">{row.date}</span>
-                    <span className="font-mono">${usdc.toFixed(2)} ({row.count})</span>
-                  </div>
-                );
-              })}
-            </div>
+            <DailyVolumeChart data={dailyVolume} />
           )}
         </div>
       </div>

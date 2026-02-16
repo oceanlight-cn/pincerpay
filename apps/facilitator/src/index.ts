@@ -7,6 +7,7 @@ import { createLogger, loggingMiddleware } from "./middleware/logging.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { rateLimitMiddleware } from "./middleware/ratelimit.js";
 import { setupEvmFacilitator } from "./chains/evm.js";
+import { setupSolanaFacilitator } from "./chains/solana.js";
 import { parseNetworks, groupByNamespace } from "./chains/registry.js";
 import { health } from "./routes/health.js";
 import { createSupportedRoute } from "./routes/supported.js";
@@ -25,11 +26,14 @@ const { db, close: closeDb } = createDb(config.DATABASE_URL);
 // ─── x402 Facilitator ───
 const facilitator = new x402Facilitator();
 
-// Register EVM chains
-const networks = parseNetworks(config.EVM_NETWORKS);
-const grouped = groupByNamespace(networks);
+// Parse all configured networks
+const evmNetworks = parseNetworks(config.EVM_NETWORKS);
+const solanaNetworks = config.SOLANA_NETWORKS ? parseNetworks(config.SOLANA_NETWORKS) : [];
+const allNetworks = [...evmNetworks, ...solanaNetworks];
+const grouped = groupByNamespace(allNetworks);
 const rpcUrls = parseRpcUrls(config.RPC_URLS);
 
+// Register EVM chains
 if (grouped.eip155.length > 0) {
   setupEvmFacilitator(facilitator, {
     privateKey: config.FACILITATOR_PRIVATE_KEY as `0x${string}`,
@@ -39,9 +43,16 @@ if (grouped.eip155.length > 0) {
   });
 }
 
-// TODO: Phase 1 — Solana support via @x402/svm
-if (grouped.solana.length > 0) {
-  logger.warn({ msg: "solana_not_yet_supported", networks: grouped.solana });
+// Register Solana chains
+if (grouped.solana.length > 0 && config.SOLANA_PRIVATE_KEY) {
+  await setupSolanaFacilitator(facilitator, {
+    privateKey: config.SOLANA_PRIVATE_KEY,
+    networks: grouped.solana,
+    rpcUrls,
+    logger,
+  });
+} else if (grouped.solana.length > 0) {
+  logger.warn({ msg: "solana_networks_configured_but_no_private_key", networks: grouped.solana });
 }
 
 // ─── Facilitator Hooks ───
@@ -98,7 +109,7 @@ const port = config.PORT;
 logger.info({
   msg: "facilitator_starting",
   port,
-  networks,
+  networks: allNetworks,
   supported: facilitator.getSupported(),
 });
 

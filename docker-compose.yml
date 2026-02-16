@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pincerpay
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  facilitator:
+    build:
+      context: .
+      dockerfile: apps/facilitator/Dockerfile
+    ports:
+      - "4402:4402"
+    environment:
+      PORT: 4402
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/pincerpay
+      FACILITATOR_PRIVATE_KEY: "${FACILITATOR_PRIVATE_KEY}"
+      EVM_NETWORKS: "${EVM_NETWORKS:-eip155:84532}"
+      RPC_URLS: "${RPC_URLS:-}"
+      SOLANA_PRIVATE_KEY: "${SOLANA_PRIVATE_KEY:-}"
+      SOLANA_NETWORKS: "${SOLANA_NETWORKS:-}"
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

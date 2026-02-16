@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.0 — 2026-02-15
+
+### Hardening + Solana + Testing + Dashboard Polish
+
+- **Solana chain support** via @x402/svm + @solana/kit v5
+  - Facilitator: `setupSolanaFacilitator()` with `registerExactSvmScheme`
+  - Agent SDK: `PincerPayAgent.create()` async factory for Solana wallets
+  - Config: `SOLANA_PRIVATE_KEY` + `SOLANA_NETWORKS` env vars
+- **Testing infrastructure**: Vitest workspace with 47 tests across 5 suites
+  - Core: chain resolution, CAIP-2 parsing, Zod schema validation
+  - Agent: spending policy enforcement (per-tx + daily limits)
+  - Merchant: route config transformation, base unit conversion
+  - Facilitator: rate limiter middleware
+- **GitHub Actions CI**: typecheck → test → build pipeline
+- **Dashboard improvements**:
+  - Logout button + nav active state (extracted client-side sidebar)
+  - Error boundary for dashboard routes
+  - Analytics: recharts bar chart (volume by chain) + line chart (daily volume)
+  - Paywall CRUD: create, toggle, delete paywalls from UI
+  - Transaction detail page with explorer link
+  - EVM wallet address validation in merchant settings
+- **Facilitator hardening**:
+  - CORS origin restriction via `CORS_ORIGINS` env var
+  - Zod request body validation on verify/settle routes
+  - Auth error logging with IP + key prefix
+  - Graceful DB shutdown on SIGTERM/SIGINT
+  - `.dockerignore` to reduce Docker context size
+- **DB schema**: unique constraint on paywalls, composite analytics index on transactions
+- **Docker Compose**: local dev with PostgreSQL + facilitator
+
 ## 0.1.0 — 2026-02-15
 
 ### Phase 1 MVP Implementation

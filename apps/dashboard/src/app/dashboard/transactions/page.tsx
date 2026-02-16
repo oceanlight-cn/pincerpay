@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { merchants, transactions } from "@pincerpay/db";
 import { eq, desc } from "drizzle-orm";
+import Link from "next/link";
 
 async function getMerchantId(authUserId: string): Promise<string | null> {
   const db = getDb();
@@ -70,9 +71,11 @@ export default async function TransactionsPage() {
             </thead>
             <tbody>
               {txns.map((tx) => (
-                <tr key={tx.id} className="border-b border-[var(--border)]">
+                <tr key={tx.id} className="border-b border-[var(--border)] hover:bg-[var(--muted)] transition-colors">
                   <td className="py-3">
-                    {tx.createdAt.toLocaleString()}
+                    <Link href={`/dashboard/transactions/${tx.id}`} className="hover:underline">
+                      {tx.createdAt.toLocaleString()}
+                    </Link>
                   </td>
                   <td className="py-3 font-mono text-xs">{tx.chainId}</td>
                   <td className="py-3">{formatAmount(tx.amount)} USDC</td>
