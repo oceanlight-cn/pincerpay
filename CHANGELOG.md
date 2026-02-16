@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.1 — 2026-02-16
+
+### Dashboard Migration: Railway → Vercel
+
+- **Migrated dashboard from Railway (Docker) to Vercel** for zero-config Next.js deploys
+  - Removed `Dockerfile`, `standalone` output mode, `outputFileTracingRoot`
+  - Removed root layout `force-dynamic` (only needed to prevent Docker prerender crashes)
+  - Added `vercel.json` for monorepo build config (Turborepo filter + install command)
+  - Added env vars to `turbo.json` for Vercel's Turborepo integration
+- **Deleted Railway dashboard service** — facilitator remains on Railway
+- **DNS updated**: `pincerpay.com` A record → Vercel (`216.150.1.1`)
+- **Database**: Switched `DATABASE_URL` to Supabase connection pooler (port 6543) for serverless compatibility
+
 ## 0.3.0 — 2026-02-16
 
 ### Production Deployment

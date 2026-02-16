@@ -118,7 +118,7 @@ const response = await agent.fetch("https://api.example.com/weather");
 | Facilitator | `https://pincerpayfacilitator-production.up.railway.app` |
 | Dashboard | `https://pincerpay.com` |
 
-Both services are deployed to Railway via Docker. The facilitator is currently registered on **Base Sepolia** (testnet).
+The facilitator is deployed to Railway via Docker. The dashboard is deployed to Vercel. The facilitator is currently registered on **Base Sepolia** (testnet).
 
 ## Tech Stack
 
