@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.3 — 2026-02-16
+
+### E2E Payment Flow Test + Merchant Middleware Fixes
+
+- **E2E test** (`apps/facilitator/src/__tests__/e2e.test.ts`) — full payment flow:
+  - Spins up 3 localhost HTTP servers (mock RPC, facilitator, merchant)
+  - Exercises: agent request → 402 challenge → EVM signature → facilitator verify/settle → DB insert → 200 response
+  - Real EVM cryptography with mocked blockchain RPC and database
+  - 4 test cases: payment flow, DB recording, non-paywalled passthrough, health check
+- **Fixed merchant middleware** (Express + Hono) — two bugs that broke production:
+  - Missing `ExactEvmScheme` registration → `RouteConfigurationError` on first paywalled request
+  - Price passed as `AssetAmount` stripped EIP-712 domain parameters (name, version) → client signing failure
+  - Now passes price as `Money` string, lets the EVM server scheme handle conversion + domain params
+- **Test count**: 47 → 51 unique tests (102 counting src + dist mirrors)
+
 ## 0.3.2 — 2026-02-16
 
 ### Fix Dashboard on Vercel

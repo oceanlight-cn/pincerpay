@@ -4,7 +4,7 @@ Last updated: 2026-02-16
 
 ## Phase 1 MVP — Deployed to Production
 
-All 6 workspace packages build clean. 47 tests pass. Facilitator on Railway, dashboard on Vercel.
+All 6 workspace packages build clean. 102 tests pass (51 unique across src + dist). Facilitator on Railway, dashboard on Vercel.
 
 ### Infrastructure
 - **Facilitator**: `https://pincerpayfacilitator-production.up.railway.app` — healthy, Base Sepolia EVM registered
@@ -48,11 +48,12 @@ All 6 workspace packages build clean. 47 tests pass. Facilitator on Railway, das
 - [x] RLS enabled on all database tables
 - [x] Agent test wallet funded: `0xDA335159D283F54005fE2b4cd0eB21F256f8B726` (1 USDC)
 
-### Recent Fixes
+### Recent
 - [x] Fix Vercel serverless crash: `serverExternalPackages`, SSL for pooler, `DATABASE_URL` validation
+- [x] E2E payment flow test: merchant paywall → agent 402 → sign → facilitator verify/settle → DB record → 200
+- [x] Fix merchant middleware: missing EVM server scheme + missing EIP-712 domain params
 
 ## In Progress
-- [ ] E2E test: merchant creates paywall → agent hits endpoint → 402 → sign → settle → dashboard shows tx
 - [ ] Set `CORS_ORIGINS` on facilitator to allow dashboard + merchant domains
 
 ## Phase 2 — Trust & Discovery (Not Started)
