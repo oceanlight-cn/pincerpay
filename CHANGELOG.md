@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 — 2026-02-16
+
+### Fix Dashboard on Vercel
+
+- **Fixed Vercel serverless crash** on all `/dashboard` pages
+  - Added `serverExternalPackages: ["postgres"]` — postgres.js uses Node.js `net`/`tls` for TCP which Vercel's bundler mangles
+  - Added `ssl: 'require'` for Supabase pooler connections (port 6543) — pooler requires TLS
+  - Added explicit `DATABASE_URL` validation with clear error message
+  - Fixed `DATABASE_URL` env var on Vercel (was hostname-only, not a full connection URI)
+
 ## 0.3.1 — 2026-02-16
 
 ### Dashboard Migration: Railway → Vercel
