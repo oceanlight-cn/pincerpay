@@ -24,6 +24,9 @@ build/
 *.key
 credentials.json
 
+# Seed scripts (local dev only)
+packages/db/src/seed.ts
+
 # OS
 .DS_Store
 Thumbs.db
