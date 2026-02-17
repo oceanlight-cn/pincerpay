@@ -92,6 +92,7 @@ export default async function TransactionsPage({
                   <th className="pb-3 font-medium">Time</th>
                   <th className="pb-3 font-medium">Chain</th>
                   <th className="pb-3 font-medium">Amount</th>
+                  <th className="pb-3 font-medium">Type</th>
                   <th className="pb-3 font-medium">From</th>
                   <th className="pb-3 font-medium">Status</th>
                   <th className="pb-3 font-medium">Tx Hash</th>
@@ -107,6 +108,15 @@ export default async function TransactionsPage({
                     </td>
                     <td className="py-3 font-mono text-xs">{tx.chainId}</td>
                     <td className="py-3">{formatAmount(tx.amount)} USDC</td>
+                    <td className="py-3">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        tx.settlementType === "direct"
+                          ? "bg-purple-500/20 text-purple-400"
+                          : "bg-blue-500/20 text-blue-400"
+                      }`}>
+                        {tx.settlementType ?? "x402"}
+                      </span>
+                    </td>
                     <td className="py-3 font-mono text-xs truncate max-w-[120px]">
                       {tx.fromAddress}
                     </td>

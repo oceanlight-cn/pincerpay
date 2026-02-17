@@ -32,6 +32,10 @@ export const transactions = pgTable(
     computeUnits: text("compute_units"),
     /** Agent that initiated this transaction (null if direct/unknown) */
     agentId: uuid("agent_id").references(() => agents.id, { onDelete: "set null" }),
+    /** Settlement path: "x402" (off-chain via x402 protocol) or "direct" (on-chain via Anchor program) */
+    settlementType: text("settlement_type").notNull().default("x402"),
+    /** On-chain settlement nonce from Anchor program (links to SettlementRecord PDA). Null if not recorded on-chain. */
+    programNonce: text("program_nonce"),
     /** Endpoint that was paid for */
     endpoint: text("endpoint"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

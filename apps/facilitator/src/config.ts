@@ -26,6 +26,9 @@ const envSchema = z.object({
   /** Kora API key for authentication (optional, depends on Kora node config) */
   KORA_API_KEY: z.string().optional(),
 
+  /** Anchor program ID — enables on-chain settlement recording and direct settlement */
+  ANCHOR_PROGRAM_ID: z.string().optional(),
+
   /** Comma-separated allowed CORS origins (e.g., "https://dashboard.pincerpay.com,https://api.merchant.com") */
   CORS_ORIGINS: z.string().optional(),
 

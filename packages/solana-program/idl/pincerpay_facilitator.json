@@ -1,0 +1,155 @@
+{
+  "address": "PPayFaci1itator1111111111111111111111111111",
+  "metadata": {
+    "name": "pincerpay_facilitator",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "PincerPay on-chain facilitator for USDC settlement"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
+      "accounts": [
+        { "name": "config", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "fee_bps", "type": "u16" }
+      ]
+    },
+    {
+      "name": "register_merchant",
+      "discriminator": [51, 132, 41, 3, 244, 84, 107, 173],
+      "accounts": [
+        { "name": "config", "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "merchant_account", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [109, 101, 114, 99, 104, 97, 110, 116] }, { "kind": "arg", "path": "merchant_id" }] } },
+        { "name": "merchant_owner" },
+        { "name": "merchant_usdc_ata" },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "merchant_id", "type": { "array": ["u8", 16] } },
+        { "name": "name", "type": { "array": ["u8", 32] } }
+      ]
+    },
+    {
+      "name": "deregister_merchant",
+      "discriminator": [209, 18, 137, 54, 33, 62, 26, 95],
+      "accounts": [
+        { "name": "config", "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "merchant_account", "writable": true },
+        { "name": "authority", "signer": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle_payment",
+      "discriminator": [186, 10, 143, 22, 230, 84, 63, 197],
+      "accounts": [
+        { "name": "config", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "merchant_account", "writable": true },
+        { "name": "settlement_record", "writable": true },
+        { "name": "agent_usdc_account", "writable": true },
+        { "name": "merchant_usdc_account", "writable": true },
+        { "name": "usdc_mint" },
+        { "name": "agent", "signer": true },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "token_program" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "decimals", "type": "u8" }
+      ]
+    },
+    {
+      "name": "record_x402_settlement",
+      "discriminator": [42, 198, 71, 220, 127, 55, 163, 101],
+      "accounts": [
+        { "name": "config", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "merchant_account", "writable": true },
+        { "name": "settlement_record", "writable": true },
+        { "name": "agent" },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "x402_tx_hash", "type": { "array": ["u8", 64] } }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ProgramConfig",
+      "discriminator": [155, 12, 170, 224, 30, 250, 204, 130]
+    },
+    {
+      "name": "MerchantAccount",
+      "discriminator": [72, 169, 12, 195, 125, 40, 89, 14]
+    },
+    {
+      "name": "SettlementRecord",
+      "discriminator": [228, 167, 38, 55, 180, 12, 196, 88]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "InvalidFeeBps", "msg": "Fee basis points must be <= 10000" },
+    { "code": 6001, "name": "MerchantNotActive", "msg": "Merchant account is not active" },
+    { "code": 6002, "name": "MerchantAlreadyActive", "msg": "Merchant account is already active" },
+    { "code": 6003, "name": "ZeroAmount", "msg": "Settlement amount must be greater than zero" },
+    { "code": 6004, "name": "Overflow", "msg": "Arithmetic overflow" },
+    { "code": 6005, "name": "InvalidX402TxHash", "msg": "Invalid x402 transaction hash" }
+  ],
+  "types": [
+    {
+      "name": "ProgramConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "pubKey" },
+          { "name": "fee_bps", "type": "u16" },
+          { "name": "nonce", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "MerchantAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "merchant_id", "type": { "array": ["u8", 16] } },
+          { "name": "owner", "type": "pubKey" },
+          { "name": "usdc_ata", "type": "pubKey" },
+          { "name": "name", "type": { "array": ["u8", 32] } },
+          { "name": "active", "type": "bool" },
+          { "name": "total_settled", "type": "u64" },
+          { "name": "settlement_count", "type": "u32" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "SettlementRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "nonce", "type": "u64" },
+          { "name": "agent", "type": "pubKey" },
+          { "name": "merchant", "type": "pubKey" },
+          { "name": "merchant_account", "type": "pubKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "slot", "type": "u64" },
+          { "name": "tx_type", "type": "u8" },
+          { "name": "x402_tx_hash", "type": { "array": ["u8", 64] } },
+          { "name": "timestamp", "type": "i64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ]
+}

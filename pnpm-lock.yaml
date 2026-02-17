@@ -84,6 +84,9 @@ importers:
       '@pincerpay/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@pincerpay/program':
+        specifier: workspace:*
+        version: link:../../packages/program
       '@pincerpay/solana':
         specifier: workspace:*
         version: link:../../packages/solana
@@ -236,6 +239,19 @@ importers:
       hono:
         specifier: ^4
         version: 4.11.9
+      typescript:
+        specifier: ^5.7
+        version: 5.9.3
+
+  packages/program:
+    dependencies:
+      '@pincerpay/core':
+        specifier: workspace:*
+        version: link:../core
+      '@solana/kit':
+        specifier: ^5.5.1
+        version: 5.5.1(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)
+    devDependencies:
       typescript:
         specifier: ^5.7
         version: 5.9.3

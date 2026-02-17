@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const merchants = pgTable("merchants", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,6 +8,10 @@ export const merchants = pgTable("merchants", {
   webhookUrl: text("webhook_url"),
   /** Supabase Auth user ID */
   authUserId: text("auth_user_id").notNull().unique(),
+  /** Whether this merchant has been registered on-chain via Anchor program */
+  onChainRegistered: boolean("on_chain_registered").notNull().default(false),
+  /** On-chain MerchantAccount PDA address (null if not registered) */
+  merchantPda: text("merchant_pda"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

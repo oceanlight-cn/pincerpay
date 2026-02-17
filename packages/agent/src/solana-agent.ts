@@ -94,6 +94,57 @@ export class SolanaSmartAgent extends PincerPayAgent {
   }
 
   /**
+   * Settle a payment directly via the Anchor program (bypassing x402).
+   * Calls POST /v1/settle-direct on the facilitator.
+   *
+   * Returns the settlement response including the on-chain accounts needed
+   * for the agent to construct and sign the settle_payment instruction.
+   */
+  async settleDirectly(
+    merchantId: string,
+    amountBaseUnits: string,
+    options?: { facilitatorUrl?: string; apiKey?: string; network?: string },
+  ): Promise<{
+    success: boolean;
+    transactionId?: string;
+    accounts?: Record<string, string>;
+    error?: string;
+  }> {
+    const facilitatorUrl = options?.facilitatorUrl
+      ?? this.smartConfig.facilitatorUrl
+      ?? "https://pincerpayfacilitator-production.up.railway.app";
+
+    const solanaAddr = this.solanaAddress;
+    if (!solanaAddr) {
+      return { success: false, error: "No Solana address configured" };
+    }
+
+    try {
+      const response = await globalThis.fetch(`${facilitatorUrl}/v1/settle-direct`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(options?.apiKey ? { "x-pincerpay-api-key": options.apiKey } : {}),
+        },
+        body: JSON.stringify({
+          agentAddress: solanaAddr,
+          merchantId,
+          amount: amountBaseUnits,
+          network: options?.network ?? "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+        }),
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  /**
    * Check on-chain spending limit before payment.
    * This is an optimistic pre-check — the real enforcement is on-chain.
    */

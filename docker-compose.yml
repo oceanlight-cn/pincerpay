@@ -44,6 +44,7 @@ services:
       SOLANA_NETWORKS: "${SOLANA_NETWORKS:-}"
       KORA_RPC_URL: "${KORA_RPC_URL:-}"
       KORA_API_KEY: "${KORA_API_KEY:-}"
+      ANCHOR_PROGRAM_ID: "${ANCHOR_PROGRAM_ID:-}"
       LOG_LEVEL: debug
     depends_on:
       postgres:

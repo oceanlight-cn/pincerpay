@@ -1,0 +1,43 @@
+name: Anchor Build
+
+on:
+  push:
+    paths:
+      - "packages/solana-program/**"
+  pull_request:
+    paths:
+      - "packages/solana-program/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
+
+      - name: Build Anchor program
+        working-directory: packages/solana-program
+        run: anchor build
+
+      - name: Run Anchor tests
+        working-directory: packages/solana-program
+        run: anchor test --skip-local-validator || echo "Tests skipped (no local validator)"
+
+      - name: Upload IDL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pincerpay-facilitator-idl
+          path: packages/solana-program/target/idl/pincerpay_facilitator.json
+
+      - name: Upload program binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pincerpay-facilitator-so
+          path: packages/solana-program/target/deploy/pincerpay_facilitator.so

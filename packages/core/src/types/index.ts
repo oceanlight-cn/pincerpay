@@ -76,6 +76,9 @@ export type TransactionStatus =
   | "confirmed"
   | "failed";
 
+/** Settlement type: x402 (off-chain via x402 protocol) or direct (on-chain via Anchor program) */
+export type SettlementType = "x402" | "direct";
+
 /** Solana commitment levels for confirmation */
 export type SolanaConfirmationLevel = "processed" | "confirmed" | "finalized";
 
@@ -96,6 +99,10 @@ export interface Transaction {
   status: TransactionStatus;
   /** Whether optimistic finality was used */
   optimistic: boolean;
+  /** Settlement path used: x402 (off-chain) or direct (on-chain Anchor program) */
+  settlementType?: SettlementType;
+  /** On-chain settlement nonce (links to SettlementRecord PDA) */
+  programNonce?: string;
   /** Solana slot number (null for EVM) */
   slot?: string;
   /** Solana priority fee in microlamports (null for EVM) */
@@ -104,6 +111,22 @@ export interface Transaction {
   computeUnits?: string;
   createdAt: Date;
   confirmedAt?: Date;
+}
+
+// ─── On-Chain Settlement Types ───
+
+/** On-chain settlement record from the Anchor program */
+export interface OnChainSettlement {
+  nonce: string;
+  agent: string;
+  merchant: string;
+  merchantAccount: string;
+  amount: string;
+  slot: string;
+  /** 0 = direct on-chain, 1 = x402 recorded */
+  txType: number;
+  x402TxHash: string;
+  timestamp: number;
 }
 
 // ─── Agent Types ───

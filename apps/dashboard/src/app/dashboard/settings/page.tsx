@@ -56,6 +56,30 @@ export default async function SettingsPage() {
       </section>
 
       {merchant && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">On-Chain Status</h2>
+          <div className="p-4 rounded-lg border border-[var(--border)] bg-[var(--card)]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`w-2 h-2 rounded-full ${merchant.onChainRegistered ? "bg-green-500" : "bg-yellow-500"}`} />
+              <span className="text-sm font-medium">
+                {merchant.onChainRegistered ? "Registered on-chain" : "Not registered on-chain"}
+              </span>
+            </div>
+            {merchant.merchantPda && (
+              <p className="text-xs font-mono text-[var(--muted-foreground)]">
+                PDA: {merchant.merchantPda}
+              </p>
+            )}
+            {!merchant.onChainRegistered && (
+              <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                On-chain registration enables audit trail and direct settlement. Contact support to register.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {merchant && (
         <section>
           <h2 className="text-lg font-semibold mb-4">API Keys</h2>
           <ApiKeysSection keys={keys} />

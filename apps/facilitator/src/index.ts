@@ -13,9 +13,12 @@ import { createHealthRoute } from "./routes/health.js";
 import { createSupportedRoute } from "./routes/supported.js";
 import { createVerifyRoute } from "./routes/verify.js";
 import { createSettleRoute } from "./routes/settle.js";
+import { createSettleDirectRoute } from "./routes/settle-direct.js";
 import { createStatusRoute } from "./routes/status.js";
 import { serve } from "@hono/node-server";
 import { startConfirmationWorker } from "./workers/confirmation.js";
+import { setupAnchorIntegration } from "./chains/solana-anchor.js";
+import { startOnChainRecorderWorker } from "./workers/on-chain-recorder.js";
 import type { AppEnv } from "./env.js";
 
 const config = loadConfig();
@@ -78,6 +81,18 @@ if (grouped.eip155.length > 0 && config.FACILITATOR_PRIVATE_KEY) {
   logger.warn({ msg: "evm_networks_configured_but_no_private_key", networks: grouped.eip155 });
 }
 
+// ─── Anchor Program Integration (optional) ───
+let anchorIntegration: ReturnType<typeof setupAnchorIntegration> | undefined;
+
+if (config.ANCHOR_PROGRAM_ID) {
+  const solanaRpcUrl = rpcUrls[solanaNetworks[0]] ?? "https://api.devnet.solana.com";
+  anchorIntegration = setupAnchorIntegration({
+    programId: config.ANCHOR_PROGRAM_ID,
+    rpcUrl: solanaRpcUrl,
+    logger,
+  });
+}
+
 // ─── Facilitator Hooks ───
 facilitator.onAfterSettle(async (ctx) => {
   logger.info({
@@ -122,6 +137,12 @@ authenticated.use("*", authMiddleware(db));
 authenticated.use("*", rateLimitMiddleware(config.RATE_LIMIT_PER_MINUTE));
 authenticated.route("/", createVerifyRoute(facilitator));
 authenticated.route("/", createSettleRoute(facilitator, db, { koraEnabled }));
+if (anchorIntegration) {
+  authenticated.route("/", createSettleDirectRoute(db, {
+    program: anchorIntegration.program,
+    koraEnabled,
+  }));
+}
 authenticated.route("/", createStatusRoute(db));
 
 app.route("/", authenticated);
@@ -151,10 +172,20 @@ const confirmationWorker = startConfirmationWorker(db, {
   koraEnabled,
 });
 
+// Start on-chain recorder worker (records x402 settlements on-chain for audit)
+let onChainRecorderWorker: ReturnType<typeof startOnChainRecorderWorker> | undefined;
+if (anchorIntegration) {
+  onChainRecorderWorker = startOnChainRecorderWorker(db, {
+    program: anchorIntegration.program,
+    logger,
+  });
+}
+
 // Graceful shutdown
 function shutdown(signal: string) {
   logger.info({ msg: "shutting_down", signal });
   confirmationWorker.stop();
+  onChainRecorderWorker?.stop();
   server.close(() => {
     closeDb().then(() => {
       logger.info({ msg: "shutdown_complete" });
