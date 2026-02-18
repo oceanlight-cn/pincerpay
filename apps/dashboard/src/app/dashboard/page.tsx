@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { merchants, apiKeys, paywalls, transactions } from "@pincerpay/db";
@@ -67,17 +68,7 @@ export default async function DashboardPage() {
   const merchant = user ? await getMerchant(user.id) : null;
 
   if (!merchant) {
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Welcome to PincerPay</h1>
-        <OnboardingChecklist
-          hasMerchant={false}
-          hasApiKey={false}
-          hasPaywall={false}
-          hasTransaction={false}
-        />
-      </div>
-    );
+    redirect("/dashboard/setup");
   }
 
   const [counts, stats] = await Promise.all([
@@ -105,6 +96,8 @@ export default async function DashboardPage() {
           hasApiKey={counts.apiKeyCount > 0}
           hasPaywall={counts.paywallCount > 0}
           hasTransaction={counts.transactionCount > 0}
+          walletAddress={merchant.walletAddress}
+          chain={merchant.supportedChains[0] || "solana"}
         />
       )}
 

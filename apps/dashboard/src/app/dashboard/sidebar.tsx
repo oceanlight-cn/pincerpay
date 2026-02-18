@@ -11,6 +11,7 @@ const navItems = [
   { href: "/dashboard/paywalls", label: "Paywalls" },
   { href: "/dashboard/settings", label: "Settings" },
   { href: "/dashboard/analytics", label: "Analytics" },
+  { href: "/dashboard/docs", label: "Docs" },
 ];
 
 export function Sidebar({ email }: { email: string }) {
