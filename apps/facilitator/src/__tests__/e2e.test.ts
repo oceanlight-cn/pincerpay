@@ -171,7 +171,11 @@ function createMockDb(): { db: Database; inserts: CapturedInsert[] } {
         if (table === transactions) {
           inserts.push(data);
         }
-        return thenable();
+        const base = thenable();
+        return {
+          ...base,
+          returning: () => thenable([{ id: "mock-id" }]),
+        };
       },
     }),
     update: (_table: unknown) => ({
