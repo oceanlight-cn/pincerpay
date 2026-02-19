@@ -112,6 +112,25 @@ facilitator.onSettleFailure(async (ctx) => {
   return undefined;
 });
 
+// ─── Background Workers ───
+// Started before HTTP routes so health endpoint can reference them.
+
+const confirmationWorker = startConfirmationWorker(db, {
+  rpcUrls,
+  logger,
+  koraEnabled,
+});
+
+const webhookRetryWorker = startWebhookRetryWorker(db, { logger });
+
+let onChainRecorderWorker: ReturnType<typeof startOnChainRecorderWorker> | undefined;
+if (anchorIntegration) {
+  onChainRecorderWorker = startOnChainRecorderWorker(db, {
+    program: anchorIntegration.program,
+    logger,
+  });
+}
+
 // ─── Hono App ───
 const app = new Hono<AppEnv>();
 
@@ -126,8 +145,16 @@ app.use(
 );
 app.use("*", loggingMiddleware(logger));
 
-// Health check (no auth) — includes Kora status when configured
-app.route("/", createHealthRoute({ koraFeePayer }));
+// Health check (no auth) — includes DB, worker status, uptime
+app.route("/", createHealthRoute({
+  db,
+  koraFeePayer,
+  workers: {
+    confirmation: confirmationWorker,
+    webhookRetry: webhookRetryWorker,
+    onChainRecorder: onChainRecorderWorker,
+  },
+}));
 
 // Public endpoint (no auth)
 app.route("/", createSupportedRoute(facilitator));
@@ -172,37 +199,47 @@ const server = serve({ fetch: app.fetch, port }, (info) => {
   });
 });
 
-// Start background confirmation worker for optimistic transactions
-const confirmationWorker = startConfirmationWorker(db, {
-  rpcUrls,
-  logger,
-  koraEnabled,
-});
-
-// Start webhook retry worker (retries failed webhook deliveries)
-const webhookRetryWorker = startWebhookRetryWorker(db, { logger });
-
-// Start on-chain recorder worker (records x402 settlements on-chain for audit)
-let onChainRecorderWorker: ReturnType<typeof startOnChainRecorderWorker> | undefined;
-if (anchorIntegration) {
-  onChainRecorderWorker = startOnChainRecorderWorker(db, {
-    program: anchorIntegration.program,
-    logger,
-  });
-}
-
 // Graceful shutdown
-function shutdown(signal: string) {
+const SHUTDOWN_TIMEOUT_MS = 10_000;
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return; // Prevent double-shutdown
+  shuttingDown = true;
+
   logger.info({ msg: "shutting_down", signal });
-  confirmationWorker.stop();
-  webhookRetryWorker.stop();
-  onChainRecorderWorker?.stop();
-  server.close(() => {
-    closeDb().then(() => {
-      logger.info({ msg: "shutdown_complete" });
-      process.exit(0);
-    });
+
+  // 1. Stop accepting new connections, drain in-flight requests
+  const serverClosed = new Promise<void>((resolve) => {
+    server.close(() => resolve());
   });
+
+  // 2. Stop workers (await current cycles)
+  const workerStops = Promise.all([
+    confirmationWorker.stop(),
+    webhookRetryWorker.stop(),
+    onChainRecorderWorker?.stop(),
+  ]);
+
+  // 3. Race workers + server close against timeout
+  const timeout = new Promise<"timeout">((resolve) =>
+    setTimeout(() => resolve("timeout"), SHUTDOWN_TIMEOUT_MS),
+  );
+
+  const result = await Promise.race([
+    Promise.all([workerStops, serverClosed]).then(() => "clean" as const),
+    timeout,
+  ]);
+
+  if (result === "timeout") {
+    logger.warn({ msg: "shutdown_timeout", timeoutMs: SHUTDOWN_TIMEOUT_MS });
+  }
+
+  // 4. Close database last (workers may have written during drain)
+  await closeDb();
+
+  logger.info({ msg: "shutdown_complete", clean: result !== "timeout" });
+  process.exit(result === "timeout" ? 1 : 0);
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));

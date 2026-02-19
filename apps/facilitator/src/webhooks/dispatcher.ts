@@ -2,6 +2,7 @@ import { eq, and, lte } from "drizzle-orm";
 import type { Database } from "@pincerpay/db";
 import { webhookDeliveries, merchants } from "@pincerpay/db";
 import type { Logger } from "../middleware/logging.js";
+import type { WorkerStatus } from "../workers/confirmation.js";
 
 /** Retry delays in ms: 1s, 5s, 30s, 2min, 10min */
 const RETRY_DELAYS = [1_000, 5_000, 30_000, 120_000, 600_000];
@@ -172,10 +173,18 @@ export function startWebhookRetryWorker(
   const { pollIntervalMs = 5_000, logger } = options;
 
   let running = false;
+  const status: WorkerStatus = {
+    running: false,
+    lastCycleAt: null,
+    cycleCount: 0,
+    consecutiveErrors: 0,
+    lastError: null,
+  };
 
   async function processRetries() {
     if (running) return;
     running = true;
+    status.running = true;
 
     try {
       const now = new Date();
@@ -201,26 +210,49 @@ export function startWebhookRetryWorker(
           logger,
         );
       }
+
+      status.consecutiveErrors = 0;
+      status.cycleCount++;
+      status.lastCycleAt = new Date().toISOString();
     } catch (err) {
+      status.consecutiveErrors++;
+      status.lastError = err instanceof Error ? err.message : String(err);
       logger.error({
         msg: "webhook_retry_worker_error",
         error: err instanceof Error ? err.message : String(err),
       });
     } finally {
       running = false;
+      status.running = false;
     }
   }
 
-  const interval = setInterval(processRetries, pollIntervalMs);
+  let currentCycle: Promise<void> | null = null;
+  let stopped = false;
+
+  function wrappedCheck() {
+    if (stopped) return;
+    currentCycle = processRetries().finally(() => {
+      currentCycle = null;
+    });
+  }
+
+  const interval = setInterval(wrappedCheck, pollIntervalMs);
   interval.unref();
 
   logger.info({ msg: "webhook_retry_worker_started", pollIntervalMs });
 
   return {
-    stop: () => {
+    stop: async () => {
+      stopped = true;
       clearInterval(interval);
+      if (currentCycle) {
+        logger.info({ msg: "webhook_retry_worker_draining" });
+        await currentCycle;
+      }
       logger.info({ msg: "webhook_retry_worker_stopped" });
     },
+    getStatus: (): WorkerStatus => ({ ...status }),
   };
 }
 

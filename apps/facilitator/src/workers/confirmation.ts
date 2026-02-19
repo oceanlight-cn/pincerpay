@@ -19,6 +19,14 @@ const EVM_CHAIN_MAP: Record<string, Chain> = {
 /** Transaction row type from Drizzle select */
 type TransactionRow = typeof transactions.$inferSelect;
 
+export interface WorkerStatus {
+  running: boolean;
+  lastCycleAt: string | null;
+  cycleCount: number;
+  consecutiveErrors: number;
+  lastError: string | null;
+}
+
 interface ConfirmationWorkerOptions {
   intervalMs?: number;
   maxAge?: number;
@@ -49,6 +57,13 @@ export function startConfirmationWorker(
   } = options;
 
   let running = false;
+  const status: WorkerStatus = {
+    running: false,
+    lastCycleAt: null,
+    cycleCount: 0,
+    consecutiveErrors: 0,
+    lastError: null,
+  };
 
   // Cache Solana RPC connections
   const solanaRpcCache = new Map<string, ReturnType<typeof createSolanaRpc>>();
@@ -195,6 +210,7 @@ export function startConfirmationWorker(
   async function checkPendingTransactions() {
     if (running) return; // Skip if previous cycle is still running
     running = true;
+    status.running = true;
 
     try {
       const cutoff = new Date(Date.now() - maxAge);
@@ -211,7 +227,11 @@ export function startConfirmationWorker(
         .limit(batchSize);
 
       if (pending.length === 0) {
+        status.consecutiveErrors = 0;
+        status.cycleCount++;
+        status.lastCycleAt = new Date().toISOString();
         running = false;
+        status.running = false;
         return;
       }
 
@@ -238,17 +258,34 @@ export function startConfirmationWorker(
           });
         }
       }
+
+      status.consecutiveErrors = 0;
+      status.cycleCount++;
+      status.lastCycleAt = new Date().toISOString();
     } catch (err) {
+      status.consecutiveErrors++;
+      status.lastError = err instanceof Error ? err.message : String(err);
       logger.error({
         msg: "confirmation_worker_error",
         error: err instanceof Error ? err.message : String(err),
       });
     } finally {
       running = false;
+      status.running = false;
     }
   }
 
-  const interval = setInterval(checkPendingTransactions, intervalMs);
+  let currentCycle: Promise<void> | null = null;
+  let stopped = false;
+
+  function wrappedCheck() {
+    if (stopped) return;
+    currentCycle = checkPendingTransactions().finally(() => {
+      currentCycle = null;
+    });
+  }
+
+  const interval = setInterval(wrappedCheck, intervalMs);
   interval.unref();
 
   logger.info({
@@ -260,10 +297,16 @@ export function startConfirmationWorker(
   });
 
   return {
-    stop: () => {
+    stop: async () => {
+      stopped = true;
       clearInterval(interval);
+      if (currentCycle) {
+        logger.info({ msg: "confirmation_worker_draining" });
+        await currentCycle;
+      }
       logger.info({ msg: "confirmation_worker_stopped" });
     },
+    getStatus: (): WorkerStatus => ({ ...status }),
   };
 }
 

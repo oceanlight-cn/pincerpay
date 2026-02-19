@@ -3,6 +3,7 @@ import type { Database } from "@pincerpay/db";
 import { transactions, merchants } from "@pincerpay/db";
 import type { PincerPayProgram } from "@pincerpay/program";
 import type { Logger } from "../middleware/logging.js";
+import type { WorkerStatus } from "./confirmation.js";
 
 interface OnChainRecorderOptions {
   intervalMs?: number;
@@ -39,10 +40,18 @@ export function startOnChainRecorderWorker(
   } = options;
 
   let running = false;
+  const status: WorkerStatus = {
+    running: false,
+    lastCycleAt: null,
+    cycleCount: 0,
+    consecutiveErrors: 0,
+    lastError: null,
+  };
 
   async function recordPendingSettlements() {
     if (running) return;
     running = true;
+    status.running = true;
 
     try {
       // Find confirmed Solana x402 settlements not yet recorded on-chain
@@ -69,7 +78,11 @@ export function startOnChainRecorderWorker(
       const solanaTxns = pending.filter((tx) => tx.chainId.startsWith("solana:"));
 
       if (solanaTxns.length === 0) {
+        status.consecutiveErrors = 0;
+        status.cycleCount++;
+        status.lastCycleAt = new Date().toISOString();
         running = false;
+        status.running = false;
         return;
       }
 
@@ -138,17 +151,33 @@ export function startOnChainRecorderWorker(
           // Will retry next cycle
         }
       }
+      status.consecutiveErrors = 0;
+      status.cycleCount++;
+      status.lastCycleAt = new Date().toISOString();
     } catch (err) {
+      status.consecutiveErrors++;
+      status.lastError = err instanceof Error ? err.message : String(err);
       logger.error({
         msg: "on_chain_recorder_error",
         error: err instanceof Error ? err.message : String(err),
       });
     } finally {
       running = false;
+      status.running = false;
     }
   }
 
-  const interval = setInterval(recordPendingSettlements, intervalMs);
+  let currentCycle: Promise<void> | null = null;
+  let stopped = false;
+
+  function wrappedCheck() {
+    if (stopped) return;
+    currentCycle = recordPendingSettlements().finally(() => {
+      currentCycle = null;
+    });
+  }
+
+  const interval = setInterval(wrappedCheck, intervalMs);
   interval.unref();
 
   logger.info({
@@ -159,9 +188,15 @@ export function startOnChainRecorderWorker(
   });
 
   return {
-    stop: () => {
+    stop: async () => {
+      stopped = true;
       clearInterval(interval);
+      if (currentCycle) {
+        logger.info({ msg: "on_chain_recorder_draining" });
+        await currentCycle;
+      }
       logger.info({ msg: "on_chain_recorder_stopped" });
     },
+    getStatus: (): WorkerStatus => ({ ...status }),
   };
 }
