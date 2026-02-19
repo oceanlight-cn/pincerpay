@@ -25,11 +25,11 @@ Last updated: 2026-02-18
 - [x] #6 Configure facilitator.pincerpay.com custom domain
 
 ### S3 Infrastructure Deployment
-- [ ] #7 Build Anchor program (IDL + .so binary)
-- [ ] #8 Deploy Anchor program to Solana devnet
-- [ ] #9 Update PINCERPAY_PROGRAM_ID with deployed address
-- [ ] #10 Set ANCHOR_PROGRAM_ID on Railway facilitator
-- [ ] #11 Register test merchant on-chain via Anchor
+- [x] #7 Build Anchor program (IDL + .so binary)
+- [x] #8 Deploy Anchor program to Solana devnet
+- [x] #9 Update PINCERPAY_PROGRAM_ID with deployed address
+- [x] #10 Set ANCHOR_PROGRAM_ID on Railway facilitator
+- [x] #11 Register test merchant on-chain via Anchor
 - [x] #12 Push S3 DB schema changes + re-enable RLS
 
 ### Production Hardening

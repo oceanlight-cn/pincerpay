@@ -2,8 +2,8 @@ import { type Address, getProgramDerivedAddress, getAddressEncoder } from "@sola
 
 const encoder = getAddressEncoder();
 
-/** Placeholder program ID — replace after `anchor deploy` with actual deployed address */
-export const PINCERPAY_PROGRAM_ID = "PPayFaci1itator1111111111111111111111111111" as Address;
+/** Deployed Anchor program address (devnet) */
+export const PINCERPAY_PROGRAM_ID = "E53zfNo9DYxAUCu37bA2NakJMMbzPFszjgB5kPaTMvF3" as Address;
 
 const CONFIG_SEED = new TextEncoder().encode("config");
 const MERCHANT_SEED = new TextEncoder().encode("merchant");

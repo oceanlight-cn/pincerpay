@@ -44,6 +44,11 @@ Thumbs.db
 # Docker
 .docker/
 
+# Solana / Anchor
+packages/solana-program/target/
+*-keypair.json
+.keypair.json
+
 # Foundry
 contracts/cache/
 contracts/out/
