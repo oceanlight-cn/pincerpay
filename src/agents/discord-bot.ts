@@ -81,7 +81,7 @@ client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
       "",
       "• **#support** — ask anything, we respond fast",
       "• **#showcase** — share what you're building",
-      "• **Docs** — https://docs.pincerpay.com",
+      "• **Docs** — https://pincerpay.com/docs",
       "• **Demo** — https://demo.pincerpay.com",
       "",
       "What are you building?",

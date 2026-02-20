@@ -31,6 +31,9 @@ const envSchema = z.object({
   DISCORD_ANNOUNCEMENT_CHANNEL_ID: z.string().optional(),
   DISCORD_SUPPORT_CHANNEL_ID: z.string().optional(),
 
+  // Blog (path to pincerpay repo)
+  PINCERPAY_REPO_PATH: z.string().optional(),
+
   // Defaults
   DEFAULT_MODEL: z.string().optional().default("claude-sonnet-4-6"),
 });
@@ -65,7 +68,7 @@ export function isChannelConfigured(channel: string): boolean {
     case "discord":
       return !!(env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID);
     case "blog":
-      return true; // Blog is always available (local files)
+      return !!env.PINCERPAY_REPO_PATH;
     default:
       return false;
   }

@@ -14,7 +14,7 @@ Format:
 - [Bullet 3]
 
 ### Links
-- PincerPay Docs: https://docs.pincerpay.com
+- PincerPay Docs: https://pincerpay.com/docs
 - Demo: https://demo.pincerpay.com
 - GitHub: https://github.com/ds1/pincerpay
 

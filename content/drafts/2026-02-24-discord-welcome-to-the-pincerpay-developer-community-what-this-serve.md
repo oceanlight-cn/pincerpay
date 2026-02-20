@@ -48,6 +48,6 @@ Merchants add 3 lines of Express middleware. Agents wrap `fetch()`. That's the i
 
 **What it isn't:** a wallet, a DeFi protocol, or a walled garden. We implement open standards — x402, AP2, UCP.
 
-→ Docs: https://docs.pincerpay.com
+→ Docs: https://pincerpay.com/docs
 → Try the demo: https://demo.pincerpay.com
 → GitHub: https://github.com/ds1/pincerpay

@@ -101,7 +101,7 @@ Post this in #welcome (or set as the server description):
 PincerPay lets AI agents pay for APIs instantly using USDC on Solana via the x402 protocol.
 
 **Quick Links**
-→ Docs: https://docs.pincerpay.com
+→ Docs: https://pincerpay.com/docs
 → Demo: https://demo.pincerpay.com
 → GitHub: https://github.com/ds1/pincerpay
 

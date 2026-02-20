@@ -5,13 +5,14 @@ title: >-
   v
 channel: blog
 type: blog-post
-status: draft
+status: published
 created_at: '2026-02-20T21:47:56.803Z'
-updated_at: '2026-02-20T21:47:56.803Z'
+updated_at: '2026-02-20T21:48:00.000Z'
 scheduled_for: '2026-02-24T14:00:00Z'
-published_at: null
+published_at: '2026-02-20T00:00:00Z'
 platform_id: null
-platform_url: null
+platform_url: https://pincerpay.com/blog/why-we-built-pincerpay
+review_notes: Already published manually in pincerpay repo
 calendar_week: week-1
 topic_brief: >-
   Why We Built PincerPay — origin story, the problem with card rails for agents,

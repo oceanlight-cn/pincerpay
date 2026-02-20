@@ -257,8 +257,8 @@ Cold/Academic ←——— [PincerPay lives here] ———→ Hype/Marketing
   - Include the fix, not just the problem
   - Link to relevant docs when helpful
 - **Examples**:
-  - `Error: SOLANA_PRIVATE_KEY not set. The facilitator needs a Solana keypair to sign transactions. See docs: https://docs.pincerpay.com/facilitator/setup`
-  - `Warning: CORS_ORIGINS not configured. In production, restrict origins to your dashboard domain. See: https://docs.pincerpay.com/facilitator/security`
+  - `Error: SOLANA_PRIVATE_KEY not set. The facilitator needs a Solana keypair to sign transactions. See docs: https://pincerpay.com/docs/facilitator/setup`
+  - `Warning: CORS_ORIGINS not configured. In production, restrict origins to your dashboard domain. See: https://pincerpay.com/docs/facilitator/security`
 
 ---
 

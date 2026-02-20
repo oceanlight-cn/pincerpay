@@ -1,8 +1,10 @@
 import type { Command } from "commander";
+import fs from "node:fs";
+import path from "node:path";
 import dayjs from "dayjs";
 import { confirm } from "@inquirer/prompts";
 import { listContent, moveContent } from "../../lib/content-store.js";
-import { isChannelConfigured } from "../../lib/env.js";
+import { getEnv, isChannelConfigured } from "../../lib/env.js";
 import { log } from "../../lib/logger.js";
 import type { Channel, ContentFile, PlatformPublishResult } from "../../types/index.js";
 
@@ -111,7 +113,7 @@ async function publishItem(item: ContentFile, verbose: boolean): Promise<Platfor
       case "discord":
         return await publishToDiscord(item, verbose);
       case "blog":
-        return { success: true, platform_url: "local" };
+        return await publishToBlog(item, verbose);
       default:
         return { success: false, error: `Unknown channel: ${channel}` };
     }
@@ -172,4 +174,71 @@ async function publishToDiscord(item: ContentFile, verbose: boolean): Promise<Pl
   log.verbose(`  Sending Discord announcement`, verbose);
   const result = await sendAnnouncement(item.body.trim());
   return { success: true, platform_id: result.id, platform_url: result.url };
+}
+
+async function publishToBlog(item: ContentFile, verbose: boolean): Promise<PlatformPublishResult> {
+  const env = getEnv();
+  const repoPath = env.PINCERPAY_REPO_PATH;
+  if (!repoPath) {
+    return { success: false, error: "PINCERPAY_REPO_PATH not set in .env" };
+  }
+
+  const blogDir = path.join(repoPath, "apps", "dashboard", "content", "blog");
+  if (!fs.existsSync(blogDir)) {
+    return { success: false, error: `Blog directory not found: ${blogDir}` };
+  }
+
+  // Generate slug from title
+  const slug = item.frontmatter.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+
+  // Strip the internal body content — remove the embedded YAML frontmatter block if present
+  let blogBody = item.body.trim();
+  // Remove ```yaml ... ``` block at the start (our template wraps frontmatter in a code block)
+  blogBody = blogBody.replace(/^```yaml\n---[\s\S]*?---\n```\n*/, "").trim();
+
+  // Build the site-compatible frontmatter
+  const date = item.frontmatter.scheduled_for
+    ? dayjs(item.frontmatter.scheduled_for).format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
+
+  const tags = item.frontmatter.tags?.length
+    ? item.frontmatter.tags
+    : ["pincerpay", "x402"];
+
+  // Extract description from first paragraph if not in frontmatter
+  const firstParagraph = blogBody
+    .split("\n\n")
+    .find((p) => p && !p.startsWith("#"))
+    ?.replace(/\n/g, " ")
+    .slice(0, 160);
+
+  const description = firstParagraph ?? item.frontmatter.topic_brief.slice(0, 160);
+
+  const siteContent = [
+    "---",
+    `title: "${item.frontmatter.title.replace(/"/g, '\\"')}"`,
+    `description: "${description.replace(/"/g, '\\"')}"`,
+    `date: "${date}"`,
+    `author: "PincerPay Team"`,
+    `tags: [${tags.join(", ")}]`,
+    "---",
+    "",
+    blogBody,
+    "",
+  ].join("\n");
+
+  const filepath = path.join(blogDir, `${slug}.md`);
+  log.verbose(`  Writing blog post to ${filepath}`, verbose);
+  fs.writeFileSync(filepath, siteContent, "utf-8");
+
+  const url = `https://pincerpay.com/blog/${slug}`;
+  log.info(`  Blog post written to ${filepath}`);
+  log.info(`  URL (after deploy): ${url}`);
+  log.info(`  To publish: cd ${repoPath} && git add . && git commit && git push`);
+
+  return { success: true, platform_url: url };
 }

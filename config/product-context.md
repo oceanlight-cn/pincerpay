@@ -73,6 +73,8 @@ PincerPay is an on-chain payment gateway for the agentic economy. It implements 
 ## URLs
 
 - Website: https://pincerpay.com
+- Docs: https://pincerpay.com/docs
+- Blog: https://pincerpay.com/blog
 - Demo: https://demo.pincerpay.com
 - GitHub: https://github.com/ds1/pincerpay
 - Agent Demo Repo: https://github.com/ds1/pincerpay-agent-demo
