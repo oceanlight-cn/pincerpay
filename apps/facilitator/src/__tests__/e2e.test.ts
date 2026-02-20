@@ -7,7 +7,7 @@ import { setupEvmFacilitator } from "../chains/evm.js";
 import { loggingMiddleware, createLogger } from "../middleware/logging.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { rateLimitMiddleware } from "../middleware/ratelimit.js";
-import { health } from "../routes/health.js";
+import { createHealthRoute } from "../routes/health.js";
 import { createVerifyRoute } from "../routes/verify.js";
 import { createSettleRoute } from "../routes/settle.js";
 import { createSupportedRoute } from "../routes/supported.js";
@@ -171,7 +171,11 @@ function createMockDb(): { db: Database; inserts: CapturedInsert[] } {
         if (table === transactions) {
           inserts.push(data);
         }
-        return thenable();
+        const base = thenable();
+        return {
+          ...base,
+          returning: () => thenable([{ id: "mock-id" }]),
+        };
       },
     }),
     update: (_table: unknown) => ({
@@ -179,6 +183,7 @@ function createMockDb(): { db: Database; inserts: CapturedInsert[] } {
         where: (_condition: unknown) => thenable(),
       }),
     }),
+    execute: () => thenable([{ "?column?": 1 }]),
   } as unknown as Database;
 
   return { db, inserts };
@@ -204,7 +209,8 @@ function buildFacilitatorApp(
   app.use("*", loggingMiddleware(silentLogger));
 
   // Public routes
-  app.route("/", health);
+  const mockWorkerStatus = { getStatus: () => ({ running: false, lastCycleAt: null, cycleCount: 0, consecutiveErrors: 0, lastError: null }) };
+  app.route("/", createHealthRoute({ db: mockDb, workers: { confirmation: mockWorkerStatus, webhookRetry: mockWorkerStatus } }));
   app.route("/", createSupportedRoute(facilitator));
 
   // Authenticated routes

@@ -7,7 +7,7 @@ pub mod state;
 use instructions::*;
 
 // Placeholder program ID — replace after `anchor deploy`
-declare_id!("PPayFaci1itator1111111111111111111111111111");
+declare_id!("E53zfNo9DYxAUCu37bA2NakJMMbzPFszjgB5kPaTMvF3");
 
 #[program]
 pub mod pincerpay_facilitator {

@@ -1,5 +1,99 @@
 # Changelog
 
+## 0.10.0 — 2026-02-20
+
+### Rebrand — Orange Identity
+
+New visual identity across dashboard and agent demo with PincerPay pincer claw logo.
+
+- **Font**: Nunito Sans via `next/font/google` (was system-ui on dashboard, Inter on demo)
+- **Primary color**: `#F97316` orange (was `#3b82f6` blue on dashboard, `#6366f1` indigo on demo)
+- **Background**: `#070300` warm black (was `#09090b` / `#0a0a0f` cool dark)
+- **Logo**: Pincer claw mark added to dashboard sidebar + homepage, demo header
+- **Card/muted/border colors** warm-shifted across both projects to complement orange palette
+- **Agent demo**: Hero gradient orange-to-yellow, glow/tour effects updated, CLI branding via `chalk.hex("#F97316")`
+- **Dashboard deployed** to Vercel, **demo deployed** to `demo.pincerpay.com`
+
+### Distribution Strategy — 40 GitHub Issues
+
+Created 40 GitHub Issues (#49-#88) from the distribution strategy across 4 tiers:
+- **Tier 1** (10 issues): npm publish, Cursor Rules, llms.txt, README optimization, AGENTS.md, Replit Template, LangChain tool, n8n nodes, npm SEO, MCP directory listings
+- **Tier 2** (8 issues): Cursor Plugin, Copilot Extension, Vercel/QuickNode/Railway Marketplaces, CrewAI, ChatGPT App, Reddit marketing
+- **Tier 3** (9 issues): Vercel/Cloudflare/Bolt.new partnerships, AP2 compatibility, Stripe/Shopify/AWS/Supabase, OpenAI ACP
+- **Tier 4** (13 issues): Windsurf, Zapier, Pipedream, Make, RapidAPI, Postman, Kong, GitHub Action, Netlify, Fly.io, GCP, Azure, VS Code
+
+## 0.9.0 — 2026-02-19
+
+### MCP Server (`@pincerpay/mcp`)
+
+New package: Model Context Protocol server that exposes PincerPay to every MCP-compatible AI client — Claude, Cursor, Windsurf, GitHub Copilot, Replit, and any future MCP client. Single highest-leverage distribution artifact.
+
+- **7 tools**:
+  - `list-supported-chains` — return chain configs from local registry or live facilitator
+  - `check-transaction-status` — query facilitator for tx status by hash/signature (auth required)
+  - `estimate-gas-cost` — static gas estimates per chain with optimistic finality info
+  - `validate-payment-config` — validate merchant `PincerPayConfig` JSON against Zod schema with semantic warnings
+  - `scaffold-x402-middleware` — generate copy-paste Express or Hono middleware with route configs
+  - `scaffold-agent-client` — generate agent fetch wrapper with spending policies
+  - `generate-ucp-manifest` — create `/.well-known/ucp` JSON for agent-readable commerce discovery
+- **3 resources**: `chain://{shorthand}` (6 chains), `pincerpay://openapi` (live spec), `docs://pincerpay/{topic}` (getting-started, merchant, agent)
+- **3 prompts**: `integrate-merchant`, `integrate-agent`, `debug-transaction` — guided workflows that chain multiple tools together
+- **Dual transport**: stdio (default, for npx/Claude Desktop/Cursor) + Streamable HTTP (`--transport=http` for remote deployment)
+- **Lightweight**: only 2 runtime deps (`@modelcontextprotocol/sdk` + `@pincerpay/core`) — no viem, no @solana/kit, no @x402 packages
+- **Auth model**: developer tools work without API key; operations tools return helpful `isError` response when no key is configured
+- **`FacilitatorClient`**: lightweight HTTP wrapper following same pattern as `PincerPayClient` in merchant SDK
+- **22 tests** (client, tools, resources)
+- **npm bin entry**: `npx @pincerpay/mcp` for instant setup
+- **Publish workflow**: added `@pincerpay/mcp` to GitHub Actions publish options
+- **Vitest workspace**: added `mcp` test project
+
+## 0.8.0 — 2026-02-20
+
+### Cost Optimization & Settlement Fee Update
+
+Reduced idle infrastructure costs ~18x and improved RPC efficiency ~50x. Settlement fee target raised to 1%.
+
+- **Batched Solana `getSignatureStatuses`** — confirmation worker now sends all pending signatures in a single RPC call per chain (was one call per transaction). 50 pending txns = 1 RPC call instead of 50.
+- **Cached EVM viem clients** — confirmation worker reuses `createPublicClient` instances via a `Map<chainId, PublicClient>` cache (was creating a new client per transaction per cycle).
+- **Adaptive idle backoff on all workers** — replaced fixed `setInterval` with dynamic `setTimeout` scheduling. When a cycle finds no work, the interval doubles (up to 5 min cap). When work arrives, interval resets to base. Idle DB queries reduced from ~26K/day to ~1.4K/day.
+  - Confirmation worker: 60s base (was 15s), 5 min max
+  - Webhook retry worker: 30s base (was 5s), 5 min max
+  - On-chain recorder: 60s base (was 30s), 5 min max
+- **Worker `nudge()` API** — all workers expose a `nudge()` method to reset polling to base interval immediately. The `/v1/settle` route calls `nudge()` on all workers after a successful settlement, so workers wake up fast when there's actual traffic.
+- **Consolidated dashboard webhook stats** — replaced 4 sequential `COUNT WHERE status=X` queries with a single `GROUP BY status` query (4 DB round-trips → 1).
+- **Settlement fee raised to 1%** — init script updated to `fee_bps=100` (was 50). Currently deployed devnet program remains at 50 bps until redeployment. Anchor program lacks an `update_config` instruction — will need one added to change fees without redeploying.
+
+## 0.7.0 — 2026-02-17
+
+### Agent Demo
+
+Standalone demo project ([pincerpay-agent-demo](https://github.com/ds1/pincerpay-agent-demo)) showing the agent developer experience — what it looks like to interact with a PincerPay-enabled merchant API.
+
+- **Web playground** — Next.js 15 dark-themed app with 3-panel layout: agent config (wallet + spending policies), endpoint picker + response panel, and animated x402 flow visualizer showing each step (request → 402 → sign → verify → settle → response)
+- **Simulation engine** — generates realistic payment flow steps with timing, Solana-style addresses, and transaction hashes. Works fully offline with no wallet or facilitator.
+- **Spending policies** — per-request limits and daily budgets enforced before signing. Demo shows error flow when limits are exceeded.
+- **4 mock endpoints** — weather (0.001 USDC), market data (0.01), research (0.05), analytics (0.10) spanning 2 orders of magnitude
+- **CLI demo** — chalk + ora terminal walkthrough with interactive endpoint menu or `--all` flag
+- **Live mode** — optional `DEMO_MODE=live` with real `@pincerpay/agent` SDK + Express merchant server for actual devnet settlement
+- **README** — setup guide, architecture overview, and talking points for demos/pitches (problem, x402 solution, why PincerPay, why not cards, spending policies, bigger picture)
+- **Tailwind v4 fix** — webpack css-loader `import.filter` to prevent resolving `@import "tailwindcss"` before PostCSS
+
+## 0.6.0 — 2026-02-17
+
+### Merchant Onboarding Experience
+
+Guided setup wizard, in-app docs, and personalized code snippets for a seamless signup-to-first-payment journey.
+
+- **Setup wizard** (`/dashboard/setup`) — 4-step guided flow: merchant profile → API key generation → personalized integration guide with tabbed code snippets → summary with next steps. Automatically resumes at the correct step if the merchant returns later.
+- **In-app documentation** (`/dashboard/docs`) — 7 collapsible sections: Quickstart, Merchant SDK, Agent SDK, Supported Chains (table built from `@pincerpay/core` chain registry), Testnet Guide, API Reference, FAQ. No external dependencies.
+- **Dynamic code snippets** — onboarding checklist and wizard inject the merchant's actual wallet address, API key, and selected chain into all code examples (was hardcoded `YOUR_WALLET_ADDRESS`).
+- **Signup → wizard redirect** — new signups land on `/dashboard/setup` instead of a bare dashboard.
+- **Dashboard → wizard redirect** — merchants without a profile are redirected to the setup wizard.
+- **Docs sidebar link** — added "Docs" nav item to dashboard sidebar.
+- **Fixed broken docs link** — onboarding checklist link changed from `/docs/getting-started` (404) to `/dashboard/docs`.
+- **Facilitator test fix** — added `.returning()` to mock DB in e2e tests (agent auto-registration code path).
+- **Tests**: 133 tests pass across 10 packages.
+
 ## 0.5.0 — 2026-02-16
 
 ### Phase S1: Solana-First Architecture

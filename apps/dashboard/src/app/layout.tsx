@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { Nunito_Sans } from "next/font/google";
 import { SupabaseProvider } from "@/lib/supabase/provider";
 import { BASE_URL } from "@/lib/constants";
 import "./globals.css";
+
+const nunitoSans = Nunito_Sans({
+  subsets: ["latin"],
+  variable: "--font-nunito-sans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -70,11 +76,11 @@ export default function RootLayout({
     "";
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${nunitoSans.variable}`}>
       <head>
         <link rel="alternate" type="text/plain" href="/llms.txt" />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className={`min-h-screen antialiased ${nunitoSans.className}`}>
         <SupabaseProvider url={supabaseUrl} publishableKey={supabaseKey}>
           {children}
         </SupabaseProvider>

@@ -17,23 +17,27 @@ interface OnboardingChecklistProps {
   hasApiKey: boolean;
   hasPaywall: boolean;
   hasTransaction: boolean;
+  walletAddress?: string;
+  chain?: string;
 }
 
-const SDK_SNIPPET = `import { pincerpay } from "@pincerpay/merchant";
+function buildSnippet(walletAddress?: string, chain?: string): string {
+  return `import { pincerpay } from "@pincerpay/merchant";
 
 app.use(
   pincerpay({
     apiKey: process.env.PINCERPAY_API_KEY!,
-    merchantAddress: "YOUR_WALLET_ADDRESS",
+    merchantAddress: "${walletAddress || "YOUR_WALLET_ADDRESS"}",
     routes: {
       "GET /api/data": {
         price: "0.01",
-        chain: "solana",
+        chain: "${chain || "solana"}",
         description: "API access",
       },
     },
   })
 );`;
+}
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -93,7 +97,10 @@ export function OnboardingChecklist({
   hasApiKey,
   hasPaywall,
   hasTransaction,
+  walletAddress,
+  chain,
 }: OnboardingChecklistProps) {
+  const SDK_SNIPPET = buildSnippet(walletAddress, chain);
   const [sdkDismissed, setSdkDismissed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -273,7 +280,7 @@ export function OnboardingChecklist({
                           Mark as done
                         </button>
                         <Link
-                          href="/docs/getting-started"
+                          href="/dashboard/docs"
                           target="_blank"
                           className="text-sm text-[var(--primary)] hover:underline"
                         >
@@ -285,7 +292,7 @@ export function OnboardingChecklist({
 
                   {step.id === "sdk" && step.complete && (
                     <Link
-                      href="/docs/getting-started"
+                      href="/dashboard/docs"
                       target="_blank"
                       className="text-sm text-[var(--primary)] hover:underline"
                     >

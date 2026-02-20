@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
@@ -7,6 +8,9 @@ export default function Home() {
       <SiteHeader />
       <main className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center p-8">
         <div className="max-w-2xl text-center">
+          <div className="flex justify-center mb-6">
+            <Image src="/logo.png" alt="PincerPay" width={80} height={80} />
+          </div>
           <h1 className="text-5xl font-bold tracking-tight mb-4">
             Pincer<span className="text-[var(--primary)]">Pay</span>
           </h1>
