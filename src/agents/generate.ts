@@ -115,7 +115,7 @@ async function generateFromEntry(entry: CalendarEntry): Promise<void> {
     generation_model: model,
     review_notes: "",
     rejection_reason: "",
-    subreddit: entry.subreddit,
+    ...(entry.subreddit ? { subreddit: entry.subreddit } : {}),
     metrics: {
       impressions: null,
       engagement: null,
