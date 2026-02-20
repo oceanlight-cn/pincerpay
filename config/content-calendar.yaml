@@ -1,0 +1,212 @@
+# Content Calendar — Month 1 (February/March 2026)
+# Based on marketing plan Phase G1: Foundation
+# Theme: Launch & Educate
+
+weeks:
+  # Week 1: Launch
+  - week: "2026-W09"
+    start_date: "2026-02-23"
+    theme: "Launch & Origin Story"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "Why We Built PincerPay — origin story, the problem with card rails for agents, vision for x402-native infrastructure"
+        scheduled_for: "2026-02-24T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Product launch thread — what PincerPay does, demo video link, code snippets showing 3-line merchant and agent integration"
+        scheduled_for: "2026-02-24T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Stripe charges $0.30 per transaction. For a $0.01 API call, that's a 3,100% fee. We built something better."
+        scheduled_for: "2026-02-25T15:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "How HTTP 402 enables AI agents to pay for APIs autonomously — technical explanation of x402 protocol"
+        subreddit: programming
+        scheduled_for: "2026-02-26T12:00:00Z"
+      - channel: discord
+        type: discord-announcement
+        topic: "Welcome to the PincerPay developer community — what this server is for, channel guide, how to get help"
+        scheduled_for: "2026-02-24T14:00:00Z"
+
+  # Week 2: Protocol Education
+  - week: "2026-W10"
+    start_date: "2026-03-02"
+    theme: "x402 Protocol Education"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "x402 Explained: HTTP Payments for the Agent Economy — how the protocol works, why HTTP 402, comparison to traditional payment flows"
+        scheduled_for: "2026-03-03T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "HTTP 402 has existed since 1997. For 29 years, no one implemented it. x402 finally gives it a real payment protocol. Here's how it works."
+        scheduled_for: "2026-03-03T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Hot take: API keys are the new fax machines. Agents don't need billing accounts. They need wallets."
+        scheduled_for: "2026-03-04T15:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Quick demo video showing the PincerPay playground — agent pays for weather API in real time (link to demo.pincerpay.com)"
+        scheduled_for: "2026-03-05T16:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "The economics of AI agent micropayments — why card rails don't work and what the alternatives are"
+        subreddit: artificial
+        scheduled_for: "2026-03-05T12:00:00Z"
+      - channel: youtube
+        type: youtube-description
+        topic: "PincerPay in 5 Minutes — walkthrough showing merchant setup and agent payment flow end to end"
+        scheduled_for: "2026-03-06T14:00:00Z"
+
+  # Week 3: Cost Advantage
+  - week: "2026-W11"
+    start_date: "2026-03-09"
+    theme: "Cost Comparison & Developer Appeal"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "PincerPay vs. Stripe vs. Skyfire: A Developer's Comparison — real numbers, architecture differences, when to use what"
+        scheduled_for: "2026-03-10T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Cost comparison thread: What $100 in micropayments costs across Stripe, PayPal, x402/Solana. Real numbers, real math."
+        scheduled_for: "2026-03-10T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Your agent just paid $0.001 for weather data. Stripe would have charged $0.30. Math is math."
+        scheduled_for: "2026-03-11T15:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Code snippet: 3 lines of Express middleware to accept USDC from AI agents. That's the whole integration."
+        scheduled_for: "2026-03-12T15:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "Building a paid API that AI agents can use autonomously — walkthrough with code examples"
+        subreddit: solana
+        scheduled_for: "2026-03-12T12:00:00Z"
+
+  # Week 4: Solana Ecosystem
+  - week: "2026-W12"
+    start_date: "2026-03-16"
+    theme: "Solana Ecosystem & Agentic Economy"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "The Agentic Economy Needs New Payment Rails — thought piece on why autonomous agents need non-custodial, programmable money"
+        scheduled_for: "2026-03-17T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Solana ecosystem deep dive: How Kora gasless + Squads smart accounts make PincerPay the Solana-native choice for agent payments"
+        scheduled_for: "2026-03-17T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Agents on PincerPay no longer need SOL for gas. Kora integration is live — agents pay gas in USDC. One less token to manage."
+        scheduled_for: "2026-03-18T15:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Weekend build challenge: Can you build a paid AI API in under 10 minutes with PincerPay? (link to getting started guide)"
+        scheduled_for: "2026-03-20T16:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "Non-custodial agent wallets and why they matter for autonomous AI — exploring Squads SPN and session key patterns"
+        subreddit: cryptocurrency
+        scheduled_for: "2026-03-19T12:00:00Z"
+      - channel: youtube
+        type: youtube-description
+        topic: "Build a Paid AI API in 10 Minutes with PincerPay — hands-on tutorial from zero to working x402 paywall"
+        scheduled_for: "2026-03-20T14:00:00Z"
+
+  # Month 2: Integrate & Demonstrate
+  # Week 5
+  - week: "2026-W13"
+    start_date: "2026-03-23"
+    theme: "Integration Tutorials"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "Build a Paid AI API in 10 Minutes with PincerPay — step-by-step tutorial with code"
+        scheduled_for: "2026-03-24T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Tutorial thread: From zero to a working x402 paywall in 10 minutes. Step by step with code snippets."
+        scheduled_for: "2026-03-24T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Every API should have a price tag. Not a subscription. Not an API key. A price per call. x402 makes this possible."
+        scheduled_for: "2026-03-25T15:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "Show r/programming: HTTP 402 payment protocol for AI agents with working demo"
+        subreddit: programming
+        scheduled_for: "2026-03-26T12:00:00Z"
+
+  # Week 6
+  - week: "2026-W14"
+    start_date: "2026-03-30"
+    theme: "Framework Integrations"
+    content:
+      - channel: twitter
+        type: thread
+        topic: "LangChain integration announcement — PincerPay as a LangChain tool for agent payments"
+        scheduled_for: "2026-03-31T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "Hot take: The agent economy will be bigger than the app economy. And it needs fundamentally different payment infrastructure."
+        scheduled_for: "2026-04-01T15:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "New: PincerPay now works as a LangChain tool. Your agents can pay for premium APIs autonomously. Docs + example."
+        scheduled_for: "2026-04-02T15:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "Discussion: What happens when AI agents can autonomously pay for services? Exploring the implications"
+        subreddit: artificial
+        scheduled_for: "2026-04-02T12:00:00Z"
+
+  # Week 7
+  - week: "2026-W15"
+    start_date: "2026-04-06"
+    theme: "Non-Custodial & Security"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "Why Non-Custodial Agent Wallets Matter — security analysis, trust model comparison, Squads SPN deep dive"
+        scheduled_for: "2026-04-07T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Custodial agent wallets are a ticking time bomb. Here's why non-custodial matters and how PincerPay does it."
+        scheduled_for: "2026-04-07T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "If your agent payment provider holds the keys, they hold the money. Non-custodial isn't a feature. It's a requirement."
+        scheduled_for: "2026-04-08T15:00:00Z"
+      - channel: reddit
+        type: reddit-post
+        topic: "Technical comparison: custodial vs non-custodial agent wallets — security models, trust assumptions, and trade-offs"
+        subreddit: solana
+        scheduled_for: "2026-04-09T12:00:00Z"
+
+  # Week 8
+  - week: "2026-W16"
+    start_date: "2026-04-13"
+    theme: "Micropayment Economics"
+    content:
+      - channel: blog
+        type: blog-post
+        topic: "Micropayments Are Finally Viable — data-driven analysis of on-chain settlement costs vs traditional rails"
+        scheduled_for: "2026-04-14T14:00:00Z"
+      - channel: twitter
+        type: thread
+        topic: "Micropayments have been 'the future' for 25 years. Here's what changed: stablecoins + Solana's sub-cent fees + x402."
+        scheduled_for: "2026-04-14T16:00:00Z"
+      - channel: twitter
+        type: tweet
+        topic: "The average API call costs $0.001-$0.01. The average Stripe transaction costs $0.30. That's the entire problem."
+        scheduled_for: "2026-04-16T15:00:00Z"
+      - channel: youtube
+        type: youtube-description
+        topic: "Micropayment Economics Explained — why card rails kill small transactions and how x402/USDC solves it"
+        scheduled_for: "2026-04-17T14:00:00Z"
