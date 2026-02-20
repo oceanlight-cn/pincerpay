@@ -60,6 +60,11 @@ export function loadCalendar(): CalendarEntry[] {
   return entries;
 }
 
+export function loadCalendarRaw(): CalendarWeek[] {
+  const data = loadYamlConfig<{ weeks: CalendarWeek[] }>("content-calendar.yaml");
+  return data.weeks;
+}
+
 export function loadKpis(): Record<string, Record<string, Record<string, number>>> {
   return loadYamlConfig("kpis.yaml");
 }

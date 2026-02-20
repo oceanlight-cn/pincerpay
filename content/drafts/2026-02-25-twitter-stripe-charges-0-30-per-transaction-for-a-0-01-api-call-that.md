@@ -13,7 +13,7 @@ scheduled_for: '2026-02-25T15:00:00Z'
 published_at: null
 platform_id: null
 platform_url: null
-calendar_week: 2026-W09
+calendar_week: week-1
 topic_brief: >-
   Stripe charges $0.30 per transaction. For a $0.01 API call, that's a 3,100%
   fee. We built something better.

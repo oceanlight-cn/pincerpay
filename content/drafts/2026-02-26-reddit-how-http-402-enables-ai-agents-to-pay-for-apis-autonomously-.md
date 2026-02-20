@@ -12,7 +12,7 @@ scheduled_for: '2026-02-26T12:00:00Z'
 published_at: null
 platform_id: null
 platform_url: null
-calendar_week: 2026-W09
+calendar_week: week-1
 topic_brief: >-
   How HTTP 402 enables AI agents to pay for APIs autonomously — technical
   explanation of x402 protocol

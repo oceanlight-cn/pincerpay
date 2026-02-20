@@ -1,13 +1,30 @@
 import dayjs from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek.js";
-import { loadCalendar } from "./config.js";
+import { loadCalendar, loadCalendarRaw } from "./config.js";
 import { contentExists, findContentById } from "./content-store.js";
 import type { CalendarEntry, Channel } from "../types/index.js";
 
-dayjs.extend(isoWeek);
-
 export function getCurrentWeek(): string {
-  return dayjs().format("GGGG-[W]WW");
+  // Find which sequential week the current date falls into
+  const raw = loadCalendarRaw();
+  const today = dayjs();
+
+  for (let i = 0; i < raw.length; i++) {
+    const weekStart = dayjs(raw[i].start_date);
+    const weekEnd = i < raw.length - 1 ? dayjs(raw[i + 1].start_date) : weekStart.add(7, "day");
+
+    if (today.isBefore(weekEnd) && !today.isBefore(weekStart)) {
+      return raw[i].week;
+    }
+  }
+
+  // If before all weeks, return first; if after all, return last
+  if (raw.length > 0) {
+    const firstStart = dayjs(raw[0].start_date);
+    if (today.isBefore(firstStart)) return raw[0].week;
+    return raw[raw.length - 1].week;
+  }
+
+  return "week-1";
 }
 
 export function getCalendarEntries(filter?: {

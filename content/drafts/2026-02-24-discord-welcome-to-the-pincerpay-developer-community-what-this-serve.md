@@ -13,7 +13,7 @@ scheduled_for: '2026-02-24T14:00:00Z'
 published_at: null
 platform_id: null
 platform_url: null
-calendar_week: 2026-W09
+calendar_week: week-1
 topic_brief: >-
   Welcome to the PincerPay developer community — what this server is for,
   channel guide, how to get help

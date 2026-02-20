@@ -13,7 +13,7 @@ scheduled_for: '2026-02-24T16:00:00Z'
 published_at: null
 platform_id: null
 platform_url: null
-calendar_week: 2026-W09
+calendar_week: week-1
 topic_brief: >-
   Product launch thread — what PincerPay does, demo video link, code snippets
   showing 3-line merchant and agent integration

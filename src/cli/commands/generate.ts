@@ -13,7 +13,7 @@ export function registerGenerateCommand(program: Command): void {
     .command("generate")
     .description("Generate content from calendar or ad-hoc topic")
     .option("-c, --channel <channel>", "Filter by channel (twitter, reddit, youtube, discord, blog)")
-    .option("-w, --week <week>", "Target week (e.g., 2026-W09)")
+    .option("-w, --week <week>", "Target week (e.g., week-1)")
     .option("-t, --topic <topic>", "Ad-hoc topic (bypasses calendar)")
     .option("--type <type>", "Content type for ad-hoc (tweet, thread, reddit-post, etc.)")
     .option("-m, --model <model>", "Override Claude model")

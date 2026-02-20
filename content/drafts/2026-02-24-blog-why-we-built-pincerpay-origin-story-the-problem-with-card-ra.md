@@ -12,7 +12,7 @@ scheduled_for: '2026-02-24T14:00:00Z'
 published_at: null
 platform_id: null
 platform_url: null
-calendar_week: 2026-W09
+calendar_week: week-1
 topic_brief: >-
   Why We Built PincerPay — origin story, the problem with card rails for agents,
   vision for x402-native infrastructure

@@ -8,7 +8,7 @@ export function registerCalendarCommand(program: Command): void {
   program
     .command("calendar")
     .description("View content calendar")
-    .option("-w, --week <week>", "Specific week (e.g., 2026-W09)")
+    .option("-w, --week <week>", "Specific week (e.g., week-1)")
     .option("-m, --month <month>", "Full month (e.g., 2026-03)")
     .option("-c, --channel <channel>", "Filter by channel")
     .option("-s, --status", "Show with generation/publish status overlay")
