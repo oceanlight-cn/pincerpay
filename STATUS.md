@@ -3,8 +3,8 @@
 Last updated: 2026-02-20
 
 ## Last Deploy
-- **Facilitator**: Railway — 2026-02-20T07:09Z (adaptive workers, batched RPC, cached viem clients, worker nudge API)
-- **Dashboard**: Vercel — 2026-02-20 (rebrand: Nunito Sans, orange #F97316, logo)
+- **Facilitator**: Railway — 2026-02-20T22:48Z (hono 4.12.0 security patch, bn.js 5.2.3 override)
+- **Dashboard**: Vercel — 2026-02-20T22:46Z (docs, blog, SEO, llms.txt, SiteHeader, server-side markdown, dependabot patches)
 - **Agent Demo**: Vercel — 2026-02-20 `demo.pincerpay.com` (rebrand: matching orange identity)
 
 ## Phase 1 MVP — Deployed to Production
@@ -131,9 +131,20 @@ Standalone demo project at [`pincerpay-agent-demo`](https://github.com/ds1/pince
 
 Nunito Sans font, `#F97316` orange primary, `#070300` warm black background, pincer claw logo. Applied to dashboard + agent demo.
 
+## Marketing & Content — Complete (PR #89)
+
+Docs, blog, and SEO infrastructure merged to dashboard:
+- 6 doc pages (getting-started, concepts, merchant-sdk, agent-sdk, api-reference, testing)
+- 1 blog post (why-we-built-pincerpay)
+- llms.txt + llms-full.txt for AI discoverability
+- SiteHeader with responsive mobile nav
+- Server-side markdown (unified/remark/rehype), JSON-LD with XSS protection
+- robots.txt, sitemap.xml, .well-known/ucp, .well-known/ai-plugin.json
+- Closed #44 (Landing page refresh), #51 (llms.txt)
+
 ## Distribution Strategy — 40 Issues Created
 
-40 GitHub Issues (#49-#88) across 4 tiers from distribution strategy. See `_planning/backlog.md` for full list.
+40 GitHub Issues (#49-#88) across 4 tiers from distribution strategy. See GitHub Issues for full list.
 
 ## Blockers
 _None_
