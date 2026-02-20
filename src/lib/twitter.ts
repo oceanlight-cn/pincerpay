@@ -6,14 +6,14 @@ let client: TwitterApi | null = null;
 function getTwitterClient(): TwitterApi {
   if (!client) {
     const env = getEnv();
-    if (!env.TWITTER_API_KEY || !env.TWITTER_API_SECRET || !env.TWITTER_ACCESS_TOKEN || !env.TWITTER_ACCESS_SECRET) {
-      throw new Error("Twitter API not configured. Set TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET in .env");
+    if (!env.X_API_KEY || !env.X_API_SECRET || !env.X_ACCESS_TOKEN || !env.X_ACCESS_SECRET) {
+      throw new Error("X API not configured. Set X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET in .env");
     }
     client = new TwitterApi({
-      appKey: env.TWITTER_API_KEY,
-      appSecret: env.TWITTER_API_SECRET,
-      accessToken: env.TWITTER_ACCESS_TOKEN,
-      accessSecret: env.TWITTER_ACCESS_SECRET,
+      appKey: env.X_API_KEY,
+      appSecret: env.X_API_SECRET,
+      accessToken: env.X_ACCESS_TOKEN,
+      accessSecret: env.X_ACCESS_SECRET,
     });
   }
   return client;
