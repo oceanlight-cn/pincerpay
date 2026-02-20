@@ -164,7 +164,8 @@ The agentic economy is transitioning from prototype to production. AI agents are
 |--------|-------|--------|
 | Build + submit LangChain `PincerPayTool` integration | Engineering + DevRel | PR merged, mentions in LangChain docs |
 | Build CrewAI payment tool plugin | Engineering | Community adoption |
-| Build Vercel AI SDK payment middleware example | Engineering | Vercel showcase listing |
+| Publish `@pincerpay/ai-tool` (Vercel AI SDK tool package) and `@pincerpay/middleware` (Next.js middleware) to npm | Engineering | npm weekly downloads |
+| Create + publish `pincerpay-nextjs-starter` template with Deploy Button to vercel.com/templates | Engineering + DevRel | Template deploys, Vercel showcase listing |
 | Create "Awesome x402" repository (curated list of x402 resources) | DevRel | GitHub stars, backlinks |
 | Publish OpenAPI spec for facilitator at `facilitator.pincerpay.com/openapi.json` | Engineering | 3rd-party client generation |
 | Apply to Solana Foundation grants / ecosystem fund | Founders | Grant approval |
@@ -232,7 +233,7 @@ The agentic economy is transitioning from prototype to production. AI agents are
 |-------------|----------------|----------|
 | **LangChain** | Largest agent framework. PincerPay as a "Tool" = distribution to 100K+ devs | Build `PincerPayTool`, submit PR, write docs |
 | **CrewAI** | Growing multi-agent framework. Payment = missing capability | Plugin + example crew |
-| **Vercel AI SDK** | Next.js ecosystem. Merchants already on Vercel | Middleware example + Vercel template |
+| **Vercel AI SDK** | Next.js ecosystem. Merchants already on Vercel. Vercel already invested in x402 via x402-mcp | Community Integration + AI SDK tool package + middleware + starter templates (see §5.5) |
 | **Solana Actions** | Solana's blink/action framework for human + agent flows | Build PincerPay Actions adapter |
 | **MCP (Model Context Protocol)** | Anthropic's tool-use standard. PincerPay as MCP server = agents can pay natively | Build MCP server for PincerPay |
 | **OpenRouter / LiteLLM** | AI gateway aggregators — payment at the proxy layer | Integration proposal |
@@ -304,6 +305,166 @@ Build and publish `n8n-nodes-pincerpay` npm package:
 | Community node npm downloads (Phase n2) | 200+/week within 6 months |
 | n8n Cloud verification (Phase n2) | Verified status within 8 weeks of submission |
 | AI agent workflows using PincerPay tool (Phase n3) | 50+ community-built workflows |
+
+### 5.5 Deep Dive: Vercel Ecosystem Integration Strategy
+
+Vercel is the dominant deployment platform for Next.js and a growing hub for AI applications. Critically, **Vercel has already invested in x402** by building x402-mcp (an open-source wrapper that adds x402 payment capabilities to MCP servers) and publishing an "x402 AI Starter" template. This signals strong platform alignment and makes Vercel a high-priority integration target.
+
+**Why Vercel is high-priority for PincerPay:**
+
+- **Massive developer surface**: Millions of Next.js developers already deploy on Vercel. Every Vercel project is a potential PincerPay merchant.
+- **AI SDK with payment primitives**: The Vercel AI SDK (v5/v6) has a `tool()` API with a `needsApproval` flag — their docs literally cite "processing payments" as the example use case for human-in-the-loop.
+- **x402 alignment**: Vercel built x402-mcp. PincerPay as the purpose-built facilitator for that protocol is a natural fit.
+- **Marketplace-first strategy**: Vercel sunset first-party storage in favor of marketplace partners (Neon, Supabase, Upstash). They actively want third-party infrastructure providers.
+- **AI Services category**: After Ship AI 2025, the Vercel Marketplace has dedicated "AI Agents" and "AI Services" categories — PincerPay fits squarely in AI Services.
+
+#### Vercel Integration Surfaces
+
+There are six distinct surfaces where PincerPay can integrate with Vercel:
+
+| Surface | What It Does | PincerPay Approach |
+|---------|-------------|-------------------|
+| **Vercel AI SDK Tool** | `tool()` function agents invoke autonomously | `@pincerpay/ai-tool` npm package with `payWithPincerPay` tool |
+| **Next.js Middleware** | Request interception at the edge before route handlers | `withPincerPay()` middleware that returns 402 challenges and verifies payment proofs |
+| **Vercel Marketplace Integration** | Two-way API: provisions resources, injects env vars, unified billing | Integration server that provisions facilitator instances per project |
+| **Deploy Button / Templates** | One-click clone + deploy from GitHub | Starter repos for merchants, agents, and full commerce flows |
+| **Edge Functions** | Globally distributed, V8-based lightweight compute | Payment proof verification at the edge (~40% faster than serverless) |
+| **Language Model Middleware** | `wrapLanguageModel()` intercepts all model calls | Auto-handle 402 responses from any tool's HTTP calls, transparently pay and retry |
+
+#### Integration Details
+
+**1. `@pincerpay/ai-tool` — Vercel AI SDK Tool Package**
+
+Published as an npm package using Vercel's [tool-as-package template](https://github.com/vercel-labs/ai-sdk-tool-as-package-template). Exports:
+
+```
+payWithPincerPay    — tool() for x402 payment (Solana/Base/Polygon USDC)
+checkBalance        — tool() to query agent wallet balance
+getPaymentHistory   — tool() to retrieve past transactions
+```
+
+Key features:
+- **`needsApproval`** integration for high-value transactions (maps to AP2 Cart Mandates — agent pauses, human approves via UI, agent resumes)
+- **`toModelOutput`** separation — return full tx data from `execute` but send only a summary to the LLM to save tokens
+- **Abort signal forwarding** — cancellation support for long-running settlement on congested chains
+- Compatible with AI SDK 6's `ToolLoopAgent` for fully autonomous payment agents
+
+**2. `@pincerpay/middleware` — Next.js Middleware**
+
+Drop-in middleware for paywalling Next.js API routes:
+
+```typescript
+// middleware.ts
+import { withPincerPay } from '@pincerpay/middleware';
+
+export default withPincerPay({
+  wallet: process.env.PINCERPAY_MERCHANT_WALLET,
+  routes: {
+    '/api/premium/:path*': { amount: '0.001', asset: 'USDC', chain: 'solana' },
+    '/api/data/:path*': { amount: '0.01', asset: 'USDC', chain: 'solana' },
+  },
+  facilitator: process.env.PINCERPAY_FACILITATOR_URL,
+});
+```
+
+- Returns 402 challenges with x402 payment details for unpaid requests
+- Verifies payment proofs against the facilitator
+- Works with both `middleware.ts` (Next.js 15) and `proxy.ts` (Next.js 16)
+- Runs on Edge Runtime for global, low-latency verification
+
+**3. Vercel Marketplace Integration**
+
+Community integration first (no approval needed), then pursue native marketplace listing.
+
+The integration server (built on Vercel's [example-marketplace-integration](https://github.com/vercel/example-marketplace-integration)):
+- Provisions a PincerPay facilitator instance per project
+- Injects environment variables automatically:
+
+| Variable | Scope | Description |
+|----------|-------|-------------|
+| `PINCERPAY_API_KEY` | All | API key for facilitator auth |
+| `PINCERPAY_FACILITATOR_URL` | All | Facilitator endpoint URL |
+| `PINCERPAY_MERCHANT_WALLET` | All | Merchant's USDC receiving address |
+| `PINCERPAY_WEBHOOK_SECRET` | Production, Preview | Webhook signature verification |
+| `NEXT_PUBLIC_PINCERPAY_CHAIN` | All | Default chain (solana/base/polygon) |
+
+- SSO into PincerPay dashboard from Vercel (no separate login)
+- Preview deployment support: automatically uses devnet facilitator for preview deployments, mainnet for production
+- Unified billing through Vercel (merchant pays through existing Vercel invoice)
+
+**4. Deploy Button + Starter Templates**
+
+| Template | Description | Target |
+|----------|-------------|--------|
+| `pincerpay-nextjs-starter` | Next.js App Router + PincerPay middleware + x402 paywall on `/api/premium/*` | Merchants |
+| `pincerpay-agent-starter` | AI SDK 6 agent with `@pincerpay/ai-tool` for autonomous USDC payments | Agent developers |
+| `pincerpay-commerce-starter` | Next.js Commerce pattern with USDC checkout via PincerPay (replaces Stripe) | Commerce developers |
+
+Each template includes a Deploy Button with required env vars, demo URL, and integration pre-wired.
+
+**5. Edge/Serverless Split Architecture**
+
+Recommended architecture for merchants deploying facilitator logic on Vercel:
+
+- **Edge Function** (`runtime: 'edge'`): Payment proof verification, 402 challenge generation. Globally distributed, ~40% faster than serverless, 15x cheaper for compute-light tasks.
+- **Serverless Function** (default Node.js runtime): Transaction broadcasting to Solana RPC, Supabase writes, OFAC screening. Full Node.js API access, longer timeout allowance.
+
+**6. Language Model Middleware**
+
+A `wrapLanguageModel()` middleware that auto-handles 402 responses:
+
+```typescript
+import { wrapLanguageModel } from 'ai';
+import { pincerPayMiddleware } from '@pincerpay/ai-middleware';
+
+const model = wrapLanguageModel({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+  middleware: pincerPayMiddleware({
+    wallet: agentWallet,
+    maxAutoPayment: '1.00', // Auto-pay up to $1, require approval above
+  }),
+});
+```
+
+Any tool that receives an HTTP 402 response is automatically retried with payment — the model never sees the 402, only the successful response. Transactions above `maxAutoPayment` trigger the `needsApproval` flow.
+
+#### Phased Vercel Rollout
+
+**Phase v1 — Packages + Template (Weeks 1–3)**
+
+- Publish `@pincerpay/ai-tool` to npm (AI SDK tool package)
+- Publish `@pincerpay/middleware` to npm (Next.js middleware)
+- Create `pincerpay-nextjs-starter` repo with Deploy Button
+- Submit starter template to vercel.com/templates
+
+**Phase v2 — Community Integration (Weeks 4–8)**
+
+- Build integration server (fork example-marketplace-integration)
+- Implement resource provisioning, env var injection, SSO
+- Publish as Community Integration on Vercel
+- Create `pincerpay-agent-starter` template with AI SDK 6
+
+**Phase v3 — Marketplace + Middleware (Weeks 8–14)**
+
+- Apply for Native Marketplace listing (email integrations@vercel.com)
+- Build `@pincerpay/ai-middleware` (language model middleware)
+- Implement preview deployment devnet/mainnet auto-switching
+- Publish `pincerpay-commerce-starter` template
+
+**Phase v4 — Deep Platform Integration (Ongoing)**
+
+- Pursue AI Services category listing in Vercel Marketplace
+- Engage Vercel's x402-mcp team for joint positioning (PincerPay as the facilitator for Vercel's x402 protocol investment)
+- Explore unified billing integration (merchants pay PincerPay fees through Vercel invoice)
+
+#### Expected Impact
+
+| Metric | Target |
+|--------|--------|
+| `@pincerpay/ai-tool` npm weekly downloads | 500+/week within 3 months |
+| Starter template deploys | 200+ in first 3 months |
+| Community Integration installs | 100+ in first 6 months |
+| Vercel Marketplace listing (Native) | Approved within 4 months of submission |
 
 ---
 
