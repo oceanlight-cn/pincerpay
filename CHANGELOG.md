@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.11.0 — 2026-02-20
+
+### Kora Signer Node — Deployment Infrastructure
+
+Docker infrastructure and tooling for deploying a Kora gasless signer node on Railway, enabling agents to pay USDC for Solana gas instead of SOL.
+
+- **`infra/kora/Dockerfile`** — multi-stage Rust build installing `kora-cli` v2.0.4, copies config, runs entrypoint script
+- **`infra/kora/kora.toml`** — PincerPay Kora config for Solana devnet: USDC-only allowlist, restricted fee payer policy (no SPL transfers/burns from fee payer), mock pricing (devnet), metrics on :8080
+- **`infra/kora/signers.toml`** — single memory signer reading `KORA_SIGNER_PRIVATE_KEY` env var (base58-encoded)
+- **`infra/kora/entrypoint.sh`** — shell wrapper for env var expansion (`RPC_URL` defaults to devnet)
+- **`scripts/setup-kora-devnet.mjs`** — zero-dep Node.js script to generate Ed25519 keypair, output base58 private key, and print funding/deployment instructions
+- **`.env.example`** updated with `KORA_RPC_URL` and `KORA_API_KEY` vars
+- Relates to #1, #2, #3
+
 ## 0.10.0 — 2026-02-20
 
 ### Rebrand — Orange Identity

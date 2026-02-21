@@ -60,8 +60,13 @@ Kora gasless integration + Squads Smart Account spending policies.
 
 ### Manual Steps Remaining
 - [ ] Deploy Kora signer node on Railway as separate service (#1)
+  - Create service from `infra/kora/` directory, set `KORA_SIGNER_PRIVATE_KEY` + `RPC_URL`
 - [ ] Fund Kora fee payer wallet with SOL + USDC on devnet (#2)
-- [ ] Set `KORA_RPC_URL` on facilitator Railway service (#3)
+  - Run `node scripts/setup-kora-devnet.mjs` to generate keypair
+  - Airdrop 5 SOL + get devnet USDC from Circle faucet
+- [ ] Set `KORA_RPC_URL` + `KORA_API_KEY` on facilitator Railway service (#3)
+  - Remove `SOLANA_PRIVATE_KEY` (Kora replaces it)
+  - Redeploy facilitator → verify `koraFeePayer` in health endpoint
 
 ## Phase S3: On-Chain Anchor Facilitator — Deployed to Devnet
 

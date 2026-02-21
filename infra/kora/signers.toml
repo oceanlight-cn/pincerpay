@@ -1,0 +1,9 @@
+# PincerPay Kora fee payer signer
+# Private key loaded from KORA_SIGNER_PRIVATE_KEY env var (base58-encoded)
+# Generate with: node scripts/setup-kora-devnet.mjs
+
+[[signers]]
+name = "pincerpay-devnet"
+type = "memory"
+private_key_env = "KORA_SIGNER_PRIVATE_KEY"
+weight = 1
