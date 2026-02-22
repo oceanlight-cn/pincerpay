@@ -35,8 +35,8 @@ HTTP status code 402 ("Payment Required") has existed since 1997. The x402 proto
 }
 ```
 
-3. Agent signs a USDC transfer and POSTs it to the facilitator's `/verify` endpoint
-4. Facilitator verifies the transaction, broadcasts it on-chain, returns a receipt
+3. Agent signs a USDC transfer and POSTs it to the facilitator's `/v1/settle` endpoint
+4. Facilitator verifies the transaction, broadcasts it on-chain
 5. Agent retries the original request with the receipt in the `X-PAYMENT` header
 6. Merchant verifies the receipt and serves the resource
 
