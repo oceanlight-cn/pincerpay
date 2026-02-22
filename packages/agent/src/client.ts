@@ -212,8 +212,9 @@ function base58Decode(input: string): Uint8Array {
     leadingZeros++;
   }
 
-  // Convert to bytes
-  const hex = num.toString(16).padStart(2, "0");
+  // Convert to bytes (pad hex to even length so .match(/.{2}/g) doesn't drop a nibble)
+  const rawHex = num.toString(16);
+  const hex = rawHex.length % 2 ? "0" + rawHex : rawHex;
   const bytes = hex.match(/.{2}/g)?.map((b) => parseInt(b, 16)) ?? [];
   return new Uint8Array([...new Array(leadingZeros).fill(0), ...bytes]);
 }
