@@ -174,8 +174,7 @@ export default function Home() {
               {"  solanaPrivateKey: process.env."}
               <span className="text-cyan">AGENT_SOLANA_KEY</span>
               {",\n});\n\n"}
-              <span className="text-text-dim">{"// That's it — agent.fetch handles 402 payments automatically"}</span>
-              {"\n"}
+              {""}
               <span className="text-accent">const</span>
               {" data = "}
               <span className="text-accent">await</span>
