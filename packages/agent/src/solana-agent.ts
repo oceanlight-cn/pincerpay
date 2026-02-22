@@ -1,4 +1,4 @@
-import type { Address } from "@solana/kit";
+import type { Address, Instruction } from "@solana/kit";
 import { createSolanaRpc } from "@solana/kit";
 import type { SolanaSmartAgentConfig } from "@pincerpay/core";
 import {
@@ -6,7 +6,12 @@ import {
   deriveSettingsPda,
   deriveSpendingLimitPda,
   checkSpendingLimit,
+  createSmartAccountInstruction,
+  addSpendingLimitInstruction,
+  removeSpendingLimitInstruction,
+  SpendingLimitPeriod,
 } from "@pincerpay/solana/squads";
+import type { SpendingLimitConfig } from "@pincerpay/solana/squads";
 import { PincerPayAgent } from "./client.js";
 
 /**
@@ -142,6 +147,81 @@ export class SolanaSmartAgent extends PincerPayAgent {
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  }
+
+  /**
+   * Build a createSmartAccount instruction using this agent's config.
+   * The caller is responsible for signing and sending.
+   */
+  async buildCreateSmartAccountInstruction(params?: {
+    members?: string[];
+    threshold?: number;
+  }): Promise<Instruction> {
+    const solanaAddr = this.solanaAddress;
+    if (!solanaAddr) throw new Error("No Solana address configured");
+
+    const accountIndex = this.smartConfig.smartAccountIndex ?? 0;
+    const members = params?.members?.map((m) => m as Address) ?? [solanaAddr as Address];
+    const threshold = params?.threshold ?? 1;
+
+    return createSmartAccountInstruction({
+      creator: solanaAddr as Address,
+      accountIndex,
+      members,
+      threshold,
+    });
+  }
+
+  /**
+   * Build an addSpendingLimit instruction for this agent's Smart Account.
+   * Requires a Smart Account to be configured.
+   */
+  async buildAddSpendingLimitInstruction(params: {
+    mint: string;
+    amount: bigint;
+    period: SpendingLimitPeriod;
+    members?: string[];
+    destinations?: string[];
+    authority: string;
+  }): Promise<Instruction> {
+    if (!this._smartAccountPda) throw new Error("No Smart Account PDA configured");
+
+    const solanaAddr = this.solanaAddress;
+    const spendingLimitIndex = this.smartConfig.spendingLimitIndex ?? 0;
+    const members = params.members?.map((m) => m as Address) ?? (solanaAddr ? [solanaAddr as Address] : []);
+
+    return addSpendingLimitInstruction(
+      {
+        smartAccountPda: this._smartAccountPda as Address,
+        mint: params.mint as Address,
+        amount: params.amount,
+        period: params.period,
+        members,
+        destinations: params.destinations?.map((d) => d as Address) ?? [],
+      },
+      spendingLimitIndex,
+      params.authority as Address,
+    );
+  }
+
+  /**
+   * Build a removeSpendingLimit instruction for this agent's Smart Account.
+   * Requires a Smart Account to be configured.
+   */
+  async buildRevokeSpendingLimitInstruction(params: {
+    authority: string;
+    rentCollector?: string;
+  }): Promise<Instruction> {
+    if (!this._smartAccountPda) throw new Error("No Smart Account PDA configured");
+
+    const spendingLimitIndex = this.smartConfig.spendingLimitIndex ?? 0;
+
+    return removeSpendingLimitInstruction({
+      smartAccountPda: this._smartAccountPda as Address,
+      spendingLimitIndex,
+      authority: params.authority as Address,
+      rentCollector: (params.rentCollector ?? params.authority) as Address,
+    });
   }
 
   /**

@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { merchants } from "./merchants.js";
 
 export const agents = pgTable(
@@ -21,6 +21,8 @@ export const agents = pgTable(
     maxPerTransaction: text("max_per_transaction"),
     /** Max USDC per day in base units */
     maxPerDay: text("max_per_day"),
+    /** Squads spending limit index for PDA derivation (allows multiple limits per Smart Account) */
+    spendingLimitIndex: integer("spending_limit_index").default(0),
     /** active | paused | revoked */
     status: text("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

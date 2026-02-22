@@ -5,6 +5,8 @@ import { eq, and, desc } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CHAINS_BY_CAIP2 } from "@pincerpay/core/chains";
+import { SpendingLimitsForm } from "./spending-limits-form";
+import { SmartAccountSection } from "./smart-account-section";
 
 async function getMerchantId(authUserId: string): Promise<string | null> {
   const db = getDb();
@@ -90,40 +92,34 @@ export default async function AgentDetailPage({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-xs text-[var(--muted-foreground)] mb-1">Solana Address</p>
           <p className="font-mono text-sm break-all">{agent.solanaAddress}</p>
         </div>
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
-          <p className="text-xs text-[var(--muted-foreground)] mb-1">Per-Transaction Limit</p>
-          <p className="text-sm font-medium">{formatUsdc(agent.maxPerTransaction)}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
-          <p className="text-xs text-[var(--muted-foreground)] mb-1">Daily Limit</p>
-          <p className="text-sm font-medium">{formatUsdc(agent.maxPerDay)}</p>
-        </div>
-        {agent.smartAccountPda && (
-          <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
-            <p className="text-xs text-[var(--muted-foreground)] mb-1">Smart Account</p>
-            <p className="font-mono text-xs break-all">{agent.smartAccountPda}</p>
-          </div>
-        )}
-        {agent.spendingLimitPda && (
-          <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
-            <p className="text-xs text-[var(--muted-foreground)] mb-1">Spending Limit PDA</p>
-            <p className="font-mono text-xs break-all">{agent.spendingLimitPda}</p>
-          </div>
-        )}
         <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-xs text-[var(--muted-foreground)] mb-1">Created</p>
           <p className="text-sm">{agent.createdAt.toLocaleString()}</p>
         </div>
       </div>
 
-      <p className="text-xs text-[var(--muted-foreground)] mb-8">
-        Spending limits are for your reference only and are not enforced by PincerPay. Agents manage their own spending policies.
-      </p>
+      <div className="mb-6">
+        <SpendingLimitsForm
+          agentId={agent.id}
+          maxPerTransaction={agent.maxPerTransaction}
+          maxPerDay={agent.maxPerDay}
+        />
+      </div>
+
+      <div className="mb-8">
+        <SmartAccountSection
+          agentId={agent.id}
+          agentAddress={agent.solanaAddress}
+          smartAccountPda={agent.smartAccountPda}
+          spendingLimitPda={agent.spendingLimitPda}
+          spendingLimitIndex={agent.spendingLimitIndex ?? 0}
+        />
+      </div>
 
       <h2 className="text-lg font-bold mb-4">Recent Transactions</h2>
       {recentTxns.length === 0 ? (

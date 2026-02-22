@@ -1,8 +1,8 @@
 import { type MiddlewareHandler } from "hono";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 import type { Address } from "@solana/kit";
 import type { Database } from "@pincerpay/db";
-import { agents } from "@pincerpay/db";
+import { agents, transactions } from "@pincerpay/db";
 import { checkSpendingLimit } from "@pincerpay/solana/squads";
 import type { AppEnv } from "../env.js";
 
@@ -161,83 +161,124 @@ export function squadsMiddleware(
         );
       }
 
-      // If no Smart Account PDA, skip Squads spending limit check
-      if (!agent.smartAccountPda) return next();
-
-      // Parse requested amount
+      // Parse requested amount (needed for all limit checks)
       const requestedAmount = paymentRequirements.amount
         ? BigInt(paymentRequirements.amount)
         : null;
-      if (!requestedAmount) return next();
 
-      // Check per-transaction limit (from dashboard config, not on-chain)
-      if (agent.maxPerTransaction) {
-        const maxPerTx = BigInt(agent.maxPerTransaction);
-        if (requestedAmount > maxPerTx) {
-          logger.warn({
-            msg: "squads_per_tx_limit_exceeded",
-            agentId: agent.id,
-            address: payerAddress,
-            maxPerTransaction: agent.maxPerTransaction,
-            requested: requestedAmount.toString(),
-          });
-          return c.json(
-            {
-              error: "Per-transaction spending limit exceeded",
-              code: "PER_TX_LIMIT_EXCEEDED",
-              maxPerTransaction: agent.maxPerTransaction,
-              requested: requestedAmount.toString(),
-            },
-            403,
-          );
-        }
-      }
-
-      // Check on-chain Squads spending limit
-      try {
-        const limitState = await checkSpendingLimit(
-          agent.smartAccountPda as Address,
-          0, // default first spending limit index
-          rpcUrl,
-        );
-
-        if (limitState?.exists && limitState.remainingAmount !== undefined) {
-          if (limitState.remainingAmount < requestedAmount) {
+      // App-level limits: enforced for ALL agents, regardless of Smart Account
+      if (requestedAmount) {
+        // Check per-transaction limit
+        if (agent.maxPerTransaction) {
+          const maxPerTx = BigInt(agent.maxPerTransaction);
+          if (requestedAmount > maxPerTx) {
             logger.warn({
-              msg: "squads_spending_limit_exhausted",
+              msg: "per_tx_limit_exceeded",
               agentId: agent.id,
               address: payerAddress,
-              remaining: limitState.remainingAmount.toString(),
+              maxPerTransaction: agent.maxPerTransaction,
               requested: requestedAmount.toString(),
             });
             return c.json(
               {
-                error: "Spending limit exhausted",
-                code: "SPENDING_LIMIT_EXHAUSTED",
-                remaining: limitState.remainingAmount.toString(),
+                error: "Per-transaction spending limit exceeded",
+                code: "PER_TX_LIMIT_EXCEEDED",
+                maxPerTransaction: agent.maxPerTransaction,
                 requested: requestedAmount.toString(),
               },
               403,
             );
           }
+        }
 
-          logger.info({
-            msg: "squads_check_passed",
+        // Check daily limit via DB query
+        if (agent.maxPerDay) {
+          const maxDaily = BigInt(agent.maxPerDay);
+          const todayUtc = new Date();
+          todayUtc.setUTCHours(0, 0, 0, 0);
+
+          const [result] = await db
+            .select({
+              total: sql<string>`coalesce(sum(${transactions.amount}::numeric), 0)`,
+            })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.agentId, agent.id),
+                gte(transactions.createdAt, todayUtc),
+              ),
+            );
+
+          const dailySpend = BigInt(result?.total ?? "0");
+          if (dailySpend + requestedAmount > maxDaily) {
+            logger.warn({
+              msg: "daily_limit_exceeded",
+              agentId: agent.id,
+              address: payerAddress,
+              maxPerDay: agent.maxPerDay,
+              dailySpend: dailySpend.toString(),
+              requested: requestedAmount.toString(),
+            });
+            return c.json(
+              {
+                error: "Daily spending limit exceeded",
+                code: "DAILY_LIMIT_EXCEEDED",
+                maxPerDay: agent.maxPerDay,
+                dailySpend: dailySpend.toString(),
+                requested: requestedAmount.toString(),
+              },
+              403,
+            );
+          }
+        }
+      }
+
+      // On-chain Squads spending limit: only if agent has a Smart Account
+      if (agent.smartAccountPda && requestedAmount) {
+        try {
+          const spendingLimitIndex = agent.spendingLimitIndex ?? 0;
+          const limitState = await checkSpendingLimit(
+            agent.smartAccountPda as Address,
+            spendingLimitIndex,
+            rpcUrl,
+          );
+
+          if (limitState?.exists && limitState.remainingAmount !== undefined) {
+            if (limitState.remainingAmount < requestedAmount) {
+              logger.warn({
+                msg: "squads_spending_limit_exhausted",
+                agentId: agent.id,
+                address: payerAddress,
+                remaining: limitState.remainingAmount.toString(),
+                requested: requestedAmount.toString(),
+              });
+              return c.json(
+                {
+                  error: "Spending limit exhausted",
+                  code: "SPENDING_LIMIT_EXHAUSTED",
+                  remaining: limitState.remainingAmount.toString(),
+                  requested: requestedAmount.toString(),
+                },
+                403,
+              );
+            }
+
+            logger.info({
+              msg: "squads_check_passed",
+              agentId: agent.id,
+              address: payerAddress,
+              remaining: limitState.remainingAmount.toString(),
+            });
+          }
+        } catch (err) {
+          // Fail open on on-chain lookup errors
+          logger.warn({
+            msg: "squads_limit_check_error",
             agentId: agent.id,
             address: payerAddress,
-            remaining: limitState.remainingAmount.toString(),
+            error: err instanceof Error ? err.message : String(err),
           });
         }
-        // If limitState is null (no account on-chain), pass through.
-        // The on-chain account may not exist yet if it hasn't been created.
-      } catch (err) {
-        // Fail open on on-chain lookup errors
-        logger.warn({
-          msg: "squads_limit_check_error",
-          agentId: agent.id,
-          address: payerAddress,
-          error: err instanceof Error ? err.message : String(err),
-        });
       }
     } catch (err) {
       // Fail open on DB/unexpected errors

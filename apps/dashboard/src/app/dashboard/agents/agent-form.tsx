@@ -48,6 +48,86 @@ function statusColor(status: string) {
   return "text-[var(--destructive)]";
 }
 
+/** Convert USDC display (e.g. "5.00") to base units (e.g. "5000000") */
+function toBaseUnits(usdc: string): string | null {
+  const num = parseFloat(usdc);
+  if (isNaN(num) || num < 0) return null;
+  return Math.round(num * 1_000_000).toString();
+}
+
+/** Convert base units to USDC display for editing */
+function toUsdcEdit(baseUnits: string | null): string {
+  if (!baseUnits) return "";
+  return (Number(baseUnits) / 1_000_000).toFixed(2);
+}
+
+function InlineLimit({ value, agentId, field, pending, setPending }: {
+  value: string | null;
+  agentId: string;
+  field: "maxPerTransaction" | "maxPerDay";
+  pending: boolean;
+  setPending: (v: boolean) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState(toUsdcEdit(value));
+
+  async function handleSave() {
+    const trimmed = editValue.trim();
+    const baseUnits = trimmed ? toBaseUnits(trimmed) : null;
+
+    // Don't save if unchanged
+    if (baseUnits === value || (!baseUnits && !value)) {
+      setEditing(false);
+      return;
+    }
+
+    // Invalid input
+    if (trimmed && baseUnits === null) {
+      setEditing(false);
+      setEditValue(toUsdcEdit(value));
+      return;
+    }
+
+    setPending(true);
+    const formData = new FormData();
+    formData.set(field, baseUnits ?? "clear");
+    await updateAgent(agentId, formData);
+    setEditing(false);
+    setPending(false);
+  }
+
+  if (editing) {
+    return (
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSave();
+          if (e.key === "Escape") { setEditing(false); setEditValue(toUsdcEdit(value)); }
+        }}
+        autoFocus
+        disabled={pending}
+        placeholder="USDC"
+        className="px-2 py-1 rounded bg-[var(--input)] border border-[var(--border)] text-sm w-20"
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={() => { setEditValue(toUsdcEdit(value)); setEditing(true); }}
+      className="hover:underline text-left"
+      title="Click to edit"
+    >
+      {formatUsdc(value)}
+    </button>
+  );
+}
+
 function AgentRow({ agent }: { agent: {
   id: string;
   name: string;
@@ -124,8 +204,12 @@ function AgentRow({ agent }: { agent: {
       <td className={`py-3 font-medium ${statusColor(agent.status)}`}>
         {agent.status}
       </td>
-      <td className="py-3">{formatUsdc(agent.maxPerTransaction)}</td>
-      <td className="py-3">{formatUsdc(agent.maxPerDay)}</td>
+      <td className="py-3">
+        <InlineLimit value={agent.maxPerTransaction} agentId={agent.id} field="maxPerTransaction" pending={pending} setPending={setPending} />
+      </td>
+      <td className="py-3">
+        <InlineLimit value={agent.maxPerDay} agentId={agent.id} field="maxPerDay" pending={pending} setPending={setPending} />
+      </td>
       <td className="py-3 font-mono text-xs truncate max-w-[100px]">
         {agent.smartAccountPda ?? "\u2014"}
       </td>

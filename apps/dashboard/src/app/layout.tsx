@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import { SupabaseProvider } from "@/lib/supabase/provider";
+import { SolanaWalletProvider } from "@/lib/solana/wallet-provider";
 import { BASE_URL } from "@/lib/constants";
 import "./globals.css";
 
@@ -74,6 +75,8 @@ export default function RootLayout({
     process.env.SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
     "";
+  const solanaRpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "";
+  const solanaNetwork = (process.env.NEXT_PUBLIC_SOLANA_NETWORK ?? "devnet") as "devnet" | "mainnet-beta";
 
   return (
     <html lang="en" className={`dark ${nunitoSans.variable}`}>
@@ -82,7 +85,9 @@ export default function RootLayout({
       </head>
       <body className={`min-h-screen antialiased ${nunitoSans.className}`}>
         <SupabaseProvider url={supabaseUrl} publishableKey={supabaseKey}>
-          {children}
+          <SolanaWalletProvider rpcUrl={solanaRpcUrl || undefined} network={solanaNetwork}>
+            {children}
+          </SolanaWalletProvider>
         </SupabaseProvider>
       </body>
     </html>

@@ -157,6 +157,34 @@ export class PincerPayAgent {
   }
 
   /**
+   * Replace the agent's spending policies and reset daily tracking.
+   */
+  setPolicy(policy: SpendingPolicy): void {
+    this.config.policies = [policy];
+    this.dailySpend.clear();
+    this.dailyResetAt = 0;
+  }
+
+  /**
+   * Get the first active spending policy, if any.
+   */
+  getPolicy(): SpendingPolicy | undefined {
+    return this.config.policies?.[0];
+  }
+
+  /**
+   * Get today's tracked spend total and date.
+   */
+  getDailySpend(): { date: string; amount: bigint } {
+    this.resetDailyIfNeeded();
+    const todayKey = new Date().toISOString().slice(0, 10);
+    return {
+      date: todayKey,
+      amount: this.dailySpend.get(todayKey) ?? 0n,
+    };
+  }
+
+  /**
    * Register x402 hooks to enforce spending policies before payment
    * and record spend after successful payment creation.
    */
