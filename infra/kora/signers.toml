@@ -2,6 +2,9 @@
 # Private key loaded from KORA_SIGNER_PRIVATE_KEY env var (base58-encoded)
 # Generate with: node scripts/setup-kora-devnet.mjs
 
+[signer_pool]
+strategy = "round_robin"
+
 [[signers]]
 name = "pincerpay-devnet"
 type = "memory"
