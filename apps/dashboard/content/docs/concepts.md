@@ -18,12 +18,12 @@ HTTP status code 402 ("Payment Required") has existed since 1997. The x402 proto
 
 ```json
 {
-  "x402Version": 1,
+  "x402Version": 2,
   "accepts": [
     {
       "scheme": "exact",
-      "network": "solana",
-      "maxAmountRequired": "10000",
+      "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+      "amount": "10000",
       "resource": "https://merchant.com/api/data",
       "payTo": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
       "extra": {
@@ -60,7 +60,7 @@ Autonomous spending within limits. The agent operates freely within the mandate'
 ```
 
 - Set by the agent's owner (human or organization)
-- Enforced client-side by the SDK and optionally on-chain via Squads SPN
+- Enforced client-side by the SDK, with on-chain enforcement via Squads SPN coming soon
 - Suitable for routine, low-value transactions
 
 ### Cart Mandates
@@ -133,8 +133,8 @@ PincerPay is Solana-first. Solana offers:
 
 - **Sub-second finality** — transactions confirm in ~400ms
 - **Sub-cent fees** — a USDC transfer costs ~$0.00025
-- **Kora gasless** — agents pay gas in USDC instead of SOL (no need to hold native token)
-- **Squads SPN** — on-chain session keys with spending limits
+- **Kora gasless** — agents pay gas in USDC instead of SOL (live on devnet)
+- **Squads SPN** — on-chain session keys with spending limits (coming soon)
 
 ### EVM (Optional Compatibility)
 
