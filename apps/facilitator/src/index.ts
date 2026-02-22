@@ -54,15 +54,33 @@ let koraFeePayer: string | undefined;
 if (grouped.solana.length > 0) {
   if (config.KORA_RPC_URL) {
     // Kora mode: agents pay USDC for gas
-    const result = await setupSolanaFacilitatorWithKora(facilitator, {
-      koraRpcUrl: config.KORA_RPC_URL,
-      koraApiKey: config.KORA_API_KEY,
-      networks: grouped.solana,
-      rpcUrls,
-      logger,
-    });
-    koraEnabled = true;
-    koraFeePayer = result.feePayer;
+    try {
+      const result = await setupSolanaFacilitatorWithKora(facilitator, {
+        koraRpcUrl: config.KORA_RPC_URL,
+        koraApiKey: config.KORA_API_KEY,
+        networks: grouped.solana,
+        rpcUrls,
+        logger,
+      });
+      koraEnabled = true;
+      koraFeePayer = result.feePayer;
+    } catch (err) {
+      logger.warn({
+        msg: "kora_init_failed_falling_back_to_local_keypair",
+        error: err instanceof Error ? err.message : String(err),
+        koraRpcUrl: config.KORA_RPC_URL,
+      });
+      if (config.SOLANA_PRIVATE_KEY) {
+        await setupSolanaFacilitator(facilitator, {
+          privateKey: config.SOLANA_PRIVATE_KEY,
+          networks: grouped.solana,
+          rpcUrls,
+          logger,
+        });
+      } else {
+        logger.error({ msg: "no_solana_signer_available", hint: "Set SOLANA_PRIVATE_KEY as fallback" });
+      }
+    }
   } else if (config.SOLANA_PRIVATE_KEY) {
     // Local keypair mode: agents pay SOL for gas
     await setupSolanaFacilitator(facilitator, {
