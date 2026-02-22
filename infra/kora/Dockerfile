@@ -2,7 +2,7 @@
 # Agents pay USDC for gas instead of SOL
 # https://github.com/solana-foundation/kora
 
-FROM rust:1.85-bookworm AS builder
+FROM rust:1.87-bookworm AS builder
 
 RUN cargo install kora-cli --locked
 
