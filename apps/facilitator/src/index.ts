@@ -16,6 +16,8 @@ import { createSettleRoute } from "./routes/settle.js";
 import { createSettleDirectRoute } from "./routes/settle-direct.js";
 import { createStatusRoute } from "./routes/status.js";
 import { createOpenApiRoute } from "./routes/openapi.js";
+import { createMetricsRoute } from "./routes/metrics.js";
+import { Metrics } from "./metrics.js";
 import { serve } from "@hono/node-server";
 import { startConfirmationWorker } from "./workers/confirmation.js";
 import { setupAnchorIntegration } from "./chains/solana-anchor.js";
@@ -24,7 +26,8 @@ import { startWebhookRetryWorker } from "./webhooks/dispatcher.js";
 import type { AppEnv } from "./env.js";
 
 const config = loadConfig();
-const logger = createLogger(config.LOG_LEVEL);
+const logger = createLogger(config.LOG_LEVEL, config.LOGTAIL_SOURCE_TOKEN);
+const metrics = new Metrics();
 
 if (config.NODE_ENV === "production" && !config.CORS_ORIGINS) {
   logger.warn({ msg: "CORS_ORIGINS not set — defaulting to wildcard (*). Set this in production." });
@@ -155,14 +158,26 @@ app.route("/", createHealthRoute({
     webhookRetry: webhookRetryWorker,
     onChainRecorder: onChainRecorderWorker,
   },
+  isShuttingDown: () => shuttingDown,
 }));
 
 // Public endpoints (no auth)
 app.route("/", createSupportedRoute(facilitator));
+app.route("/", createMetricsRoute(metrics));
 app.route("/", createOpenApiRoute());
 
 // Authenticated endpoints
 const authenticated = new Hono<AppEnv>();
+
+// Reject new requests during graceful shutdown drain
+authenticated.use("*", async (c, next) => {
+  if (shuttingDown) {
+    c.header("Retry-After", "1");
+    return c.json({ error: "Service is shutting down, retry on another instance" }, 503);
+  }
+  return next();
+});
+
 authenticated.use("*", authMiddleware(db));
 authenticated.use("*", rateLimitMiddleware(config.RATE_LIMIT_PER_MINUTE));
 
@@ -171,9 +186,10 @@ authenticated.use("/v1/settle", routeRateLimitMiddleware("settle", 50));
 authenticated.use("/v1/settle-direct", routeRateLimitMiddleware("settle", 50));
 authenticated.use("/v1/verify", routeRateLimitMiddleware("verify", 100));
 
-authenticated.route("/", createVerifyRoute(facilitator));
+authenticated.route("/", createVerifyRoute(facilitator, { metrics }));
 authenticated.route("/", createSettleRoute(facilitator, db, {
   koraEnabled,
+  metrics,
   onSettle: () => {
     confirmationWorker.nudge();
     webhookRetryWorker.nudge();
@@ -209,8 +225,13 @@ const server = serve({ fetch: app.fetch, port }, (info) => {
 });
 
 // Graceful shutdown
-const SHUTDOWN_TIMEOUT_MS = 10_000;
+const SHUTDOWN_TIMEOUT_MS = config.SHUTDOWN_TIMEOUT_MS;
 let shuttingDown = false;
+
+/** Exposed for health route — returns true once SIGTERM/SIGINT received */
+export function isShuttingDown(): boolean {
+  return shuttingDown;
+}
 
 async function shutdown(signal: string) {
   if (shuttingDown) return; // Prevent double-shutdown

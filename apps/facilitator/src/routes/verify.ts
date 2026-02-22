@@ -1,9 +1,14 @@
 import { Hono } from "hono";
 import type { x402Facilitator } from "@x402/core/facilitator";
 import type { AppEnv } from "../env.js";
+import type { Metrics } from "../metrics.js";
 import { paymentRequestSchema } from "./schemas.js";
 
-export function createVerifyRoute(facilitator: x402Facilitator) {
+interface VerifyRouteOptions {
+  metrics?: Metrics;
+}
+
+export function createVerifyRoute(facilitator: x402Facilitator, options?: VerifyRouteOptions) {
   const app = new Hono<AppEnv>();
 
   app.post("/v1/verify", async (c) => {
@@ -32,20 +37,26 @@ export function createVerifyRoute(facilitator: x402Facilitator) {
         amount: paymentRequirements.amount,
       });
 
+      const verifyStart = performance.now();
       const result = await facilitator.verify(
         paymentPayload,
         paymentRequirements,
       );
+      const verifyDurationMs = Math.round(performance.now() - verifyStart);
+
+      options?.metrics?.recordVerify(result.isValid, verifyDurationMs);
 
       logger.info({
         msg: "verify_result",
         requestId,
         isValid: result.isValid,
         payer: result.payer,
+        durationMs: verifyDurationMs,
       });
 
       return c.json(result);
     } catch (error) {
+      options?.metrics?.recordError("/v1/verify");
       logger.error({
         msg: "verify_error",
         requestId,

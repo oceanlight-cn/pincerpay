@@ -12,15 +12,17 @@ PincerPay is a non-custodial x402 facilitator. When an AI agent hits a merchant 
 
 ## Monorepo Structure
 
-| Package | Description |
-|---|---|
-| `apps/facilitator` | x402 facilitator service (Hono + Node.js) |
-| `apps/dashboard` | Merchant dashboard (Next.js 15) |
-| `packages/core` | Shared types, chain configs, constants |
-| `packages/db` | Drizzle ORM schema + migrations |
-| `packages/merchant` | Merchant SDK (`@pincerpay/merchant`) |
-| `packages/agent` | Agent SDK (`@pincerpay/agent`) |
-| `examples/` | Example merchant and agent apps |
+| Package | Description | Docs |
+|---|---|---|
+| `apps/facilitator` | x402 facilitator service (Hono + Node.js) | |
+| `apps/dashboard` | Merchant dashboard (Next.js 15) | |
+| [`packages/merchant`](packages/merchant/) | Merchant SDK — Express + Hono middleware | [README](packages/merchant/README.md) |
+| [`packages/agent`](packages/agent/) | Agent SDK — automatic x402 payment handling | [README](packages/agent/README.md) |
+| [`packages/core`](packages/core/) | Shared types, chain configs, constants | [README](packages/core/README.md) |
+| [`packages/db`](packages/db/) | Drizzle ORM schema + migrations | [README](packages/db/README.md) |
+| [`packages/program`](packages/program/) | Anchor program client for Solana | [README](packages/program/README.md) |
+| [`packages/solana`](packages/solana/) | Kora gasless txns + Squads smart accounts | [README](packages/solana/README.md) |
+| `examples/` | Example merchant and agent apps | |
 
 ## Quick Start
 
@@ -74,11 +76,11 @@ const app = express();
 app.use(
   pincerpay({
     apiKey: process.env.PINCERPAY_API_KEY!,
-    merchantAddress: "0xYourAddress",
+    merchantAddress: "YOUR_SOLANA_ADDRESS",
     routes: {
       "GET /api/weather": {
         price: "0.01",
-        chain: "base",
+        chain: "solana",
         description: "Weather data",
       },
     },
@@ -86,19 +88,23 @@ app.use(
 );
 ```
 
+See [`@pincerpay/merchant` README](packages/merchant/README.md) for Hono middleware, multi-chain config, and full API reference.
+
 ## Agent SDK
 
 ```typescript
 import { PincerPayAgent } from "@pincerpay/agent";
 
-const agent = new PincerPayAgent({
-  chains: ["base"],
-  evmPrivateKey: process.env.AGENT_EVM_KEY!,
+const agent = await PincerPayAgent.create({
+  chains: ["solana"],
+  solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
 });
 
 // Automatic 402 handling
 const response = await agent.fetch("https://api.example.com/weather");
 ```
+
+See [`@pincerpay/agent` README](packages/agent/README.md) for spending policies, multi-chain setup, and Squads smart accounts.
 
 ## Supported Chains
 

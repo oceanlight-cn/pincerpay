@@ -2,13 +2,26 @@ import { type MiddlewareHandler } from "hono";
 import type { AppEnv } from "../env.js";
 import pino from "pino";
 
-export function createLogger(level: string) {
+export function createLogger(level: string, logtailToken?: string) {
+  const targets: pino.TransportTargetOptions[] = [];
+
+  if (process.env.NODE_ENV === "development") {
+    targets.push({ target: "pino-pretty", options: { colorize: true }, level });
+  } else {
+    targets.push({ target: "pino/file", options: { destination: 1 }, level });
+  }
+
+  if (logtailToken) {
+    targets.push({
+      target: "@logtail/pino",
+      options: { sourceToken: logtailToken },
+      level,
+    });
+  }
+
   return pino({
     level,
-    transport:
-      process.env.NODE_ENV === "development"
-        ? { target: "pino-pretty", options: { colorize: true } }
-        : undefined,
+    transport: { targets },
   });
 }
 

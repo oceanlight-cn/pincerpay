@@ -4,6 +4,7 @@ import type { x402Facilitator } from "@x402/core/facilitator";
 import type { Database } from "@pincerpay/db";
 import { transactions, agents } from "@pincerpay/db";
 import type { AppEnv } from "../env.js";
+import type { Metrics } from "../metrics.js";
 import { paymentRequestSchema } from "./schemas.js";
 import { dispatchWebhook } from "../webhooks/dispatcher.js";
 
@@ -12,6 +13,8 @@ interface SettleRouteOptions {
   koraEnabled?: boolean;
   /** Nudge background workers to poll sooner after a new settlement */
   onSettle?: () => void;
+  /** Metrics collector */
+  metrics?: Metrics;
 }
 
 export function createSettleRoute(
@@ -49,9 +52,17 @@ export function createSettleRoute(
         payTo: paymentRequirements.payTo,
       });
 
+      const settleStart = performance.now();
       const result = await facilitator.settle(
         paymentPayload,
         paymentRequirements,
+      );
+      const settleDurationMs = Math.round(performance.now() - settleStart);
+
+      options?.metrics?.recordSettle(
+        String(result.network ?? paymentRequirements.network),
+        result.success,
+        settleDurationMs,
       );
 
       // Record transaction in database
@@ -159,13 +170,16 @@ export function createSettleRoute(
       logger.info({
         msg: "settle_result",
         requestId,
+        merchantId,
         success: result.success,
         txHash: result.transaction,
         network: result.network,
+        durationMs: settleDurationMs,
       });
 
       return c.json(result);
     } catch (error) {
+      options?.metrics?.recordError("/v1/settle");
       logger.error({
         msg: "settle_error",
         requestId,

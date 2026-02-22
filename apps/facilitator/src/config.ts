@@ -37,6 +37,12 @@ const envSchema = z.object({
 
   /** Log level */
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+
+  /** Better Stack (Logtail) source token — enables log aggregation when set */
+  LOGTAIL_SOURCE_TOKEN: z.string().optional(),
+
+  /** Graceful shutdown timeout in milliseconds */
+  SHUTDOWN_TIMEOUT_MS: z.coerce.number().default(10_000),
 }).refine(
   (data) => data.SOLANA_PRIVATE_KEY || data.KORA_RPC_URL,
   { message: "At least one of SOLANA_PRIVATE_KEY or KORA_RPC_URL is required", path: ["SOLANA_PRIVATE_KEY"] },

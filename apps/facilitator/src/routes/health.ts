@@ -14,6 +14,8 @@ interface HealthOptions {
     webhookRetry: { getStatus: () => WorkerStatus };
     onChainRecorder?: { getStatus: () => WorkerStatus };
   };
+  /** Returns true when the server is draining (SIGTERM received) */
+  isShuttingDown?: () => boolean;
 }
 
 export function createHealthRoute(options: HealthOptions) {
@@ -21,6 +23,19 @@ export function createHealthRoute(options: HealthOptions) {
   const app = new Hono();
 
   app.get("/health", async (c) => {
+    // If shutting down, immediately return 503 so load balancer stops routing
+    if (options.isShuttingDown?.()) {
+      return c.json(
+        {
+          status: "shutting_down",
+          service: "pincerpay-facilitator",
+          timestamp: new Date().toISOString(),
+          uptime: Math.floor((Date.now() - startedAt) / 1000),
+        },
+        503,
+      );
+    }
+
     // DB connectivity check
     let dbOk = false;
     try {
