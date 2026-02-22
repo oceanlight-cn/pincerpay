@@ -67,10 +67,11 @@ describe("KoraFacilitatorSvmSigner", () => {
     expect(result).toBe("signed-base64-tx");
   });
 
-  it("sends signAndSendTransaction RPC call", async () => {
+  it("sends transaction via Solana RPC (not Kora signAndSend)", async () => {
     const fetchMock = mockKoraFetch({
       getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER },
-      signAndSendTransaction: { signature: "5abc123signature", signed_transaction: "signed-base64-tx", signer_pubkey: MOCK_FEE_PAYER },
+      // Solana RPC sendTransaction returns a signature string directly
+      sendTransaction: "5abc123signature",
     });
     vi.stubGlobal("fetch", fetchMock);
 

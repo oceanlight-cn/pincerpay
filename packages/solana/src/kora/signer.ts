@@ -144,9 +144,18 @@ export function createKoraFacilitatorSvmSigner(
       }
     },
 
-    async sendTransaction(transaction: string, _network: string): Promise<string> {
-      const result = await kora.signAndSendTransaction({ transaction });
-      return result.signature;
+    async sendTransaction(transaction: string, network: string): Promise<string> {
+      // Transaction is already fully signed by signTransaction() — submit directly
+      // to Solana RPC instead of Kora's signAndSendTransaction (which would re-sign)
+      const rpc = getSolanaRpc(network);
+      const sig = await rpc
+        .sendTransaction(transaction as Parameters<typeof rpc.sendTransaction>[0], {
+          encoding: "base64",
+          skipPreflight: false,
+          preflightCommitment: "confirmed",
+        })
+        .send();
+      return sig;
     },
 
     async confirmTransaction(sig: string, network: string): Promise<void> {
