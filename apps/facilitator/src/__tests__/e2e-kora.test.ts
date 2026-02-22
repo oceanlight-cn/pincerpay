@@ -15,7 +15,7 @@ describe("Kora facilitator setup", () => {
       const method = body.method as string;
 
       const responses: Record<string, unknown> = {
-        getFeePayer: MOCK_FEE_PAYER,
+        getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER },
       };
 
       if (method in responses) {
