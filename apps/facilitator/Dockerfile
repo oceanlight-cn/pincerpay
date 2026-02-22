@@ -52,3 +52,4 @@ COPY --from=builder /app/packages/program/package.json ./packages/program/
 
 EXPOSE 4402
 CMD ["node", "apps/facilitator/dist/index.js"]
+# Kora signer: packages/solana
