@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-02-20
+Last updated: 2026-02-21
 
 ## Last Deploy
 - **Facilitator**: Railway — 2026-02-20T22:48Z (hono 4.12.0 security patch, bn.js 5.2.3 override)
@@ -9,7 +9,7 @@ Last updated: 2026-02-20
 
 ## Phase 1 MVP — Deployed to Production
 
-11 workspace packages build clean. 69 tests pass. Facilitator on Railway, dashboard on Vercel.
+11 workspace packages build clean. 168 tests pass. Facilitator on Railway, dashboard on Vercel.
 
 ### Infrastructure
 - **Facilitator**: `https://facilitator.pincerpay.com` — healthy, Solana devnet + Base Sepolia + Anchor program
@@ -49,6 +49,11 @@ Last updated: 2026-02-20
 - [x] RLS enabled on all database tables
 - [x] Webhook delivery with exponential backoff retry
 - [x] Per-route rate limiting with Retry-After headers
+- [x] Package READMEs for all 6 npm packages (merchant, agent, core, db, program, solana)
+- [x] `/metrics` JSON endpoint (settlement/verify counters, latency percentiles, error tracking)
+- [x] Logtail log aggregation (via `@logtail/pino`, activated by `LOGTAIL_SOURCE_TOKEN`)
+- [x] Graceful shutdown hardened: health 503 during drain, reject new requests with Retry-After
+- [x] Shutdown load test (10 concurrent requests + SIGTERM validation)
 
 ## Phase S1: Solana Parity — Complete
 
@@ -84,9 +89,15 @@ Anchor program + TypeScript client + hybrid facilitator.
 ## Remaining High Priority
 
 ### Production Hardening
-- [ ] #13 End-to-end payment test on devnet
-- [ ] #14 Monitoring + alerting for facilitator
-- [ ] #16 Graceful shutdown validation under load
+- [x] #13 End-to-end payment test on devnet
+- [x] #14 Monitoring + alerting for facilitator
+- [x] #16 Graceful shutdown validation under load
+- [x] #52 Package README optimization
+
+### Manual Steps (Monitoring)
+- [ ] Configure Better Stack uptime monitor: `https://facilitator.pincerpay.com/health`, 1-min interval
+- [ ] Configure Better Stack Logs alerts: error rate >5% in 5 min, settlement p95 >30s
+- [ ] Set `LOGTAIL_SOURCE_TOKEN` env var on Railway facilitator
 
 ## Phase S4: Transfer Hooks + Compliance
 - [ ] Separate Anchor compliance program (Transfer Hook authority)
