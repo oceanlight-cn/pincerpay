@@ -38,7 +38,7 @@ describe("KoraFacilitatorSvmSigner", () => {
   });
 
   it("fetches fee payer address on init()", async () => {
-    const fetchMock = mockKoraFetch({ getFeePayer: MOCK_FEE_PAYER });
+    const fetchMock = mockKoraFetch({ getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER } });
     vi.stubGlobal("fetch", fetchMock);
 
     const signer = createKoraFacilitatorSvmSigner({ config: MOCK_CONFIG });
@@ -51,7 +51,7 @@ describe("KoraFacilitatorSvmSigner", () => {
 
   it("sends signTransaction RPC call", async () => {
     const fetchMock = mockKoraFetch({
-      getFeePayer: MOCK_FEE_PAYER,
+      getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER },
       signTransaction: { transaction: "signed-base64-tx" },
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -69,7 +69,7 @@ describe("KoraFacilitatorSvmSigner", () => {
 
   it("sends signAndSendTransaction RPC call", async () => {
     const fetchMock = mockKoraFetch({
-      getFeePayer: MOCK_FEE_PAYER,
+      getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER },
       signAndSendTransaction: { signature: "5abc123signature" },
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -89,7 +89,7 @@ describe("KoraFacilitatorSvmSigner", () => {
       rpcUrl: "http://localhost:8080",
       apiKey: "test-api-key-123",
     };
-    const fetchMock = mockKoraFetch({ getFeePayer: MOCK_FEE_PAYER });
+    const fetchMock = mockKoraFetch({ getPayerSigner: { signer_address: MOCK_FEE_PAYER, payment_address: MOCK_FEE_PAYER } });
     vi.stubGlobal("fetch", fetchMock);
 
     const signer = createKoraFacilitatorSvmSigner({ config: configWithKey });
