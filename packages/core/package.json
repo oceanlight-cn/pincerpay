@@ -2,6 +2,19 @@
   "name": "@pincerpay/core",
   "version": "0.1.0",
   "type": "module",
+  "description": "Shared types, chain configs, and constants for PincerPay on-chain payment gateway",
+  "license": "MIT",
+  "homepage": "https://pincerpay.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ds1/pincerpay.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ds1/pincerpay/issues"
+  },
+  "keywords": ["pincerpay", "x402", "usdc", "payments", "ai-agents", "solana", "payment-gateway", "stablecoin"],
+  "files": ["dist", "README.md"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -20,6 +33,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"

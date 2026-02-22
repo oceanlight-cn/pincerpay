@@ -1,8 +1,11 @@
 import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
 import type { x402Facilitator } from "@x402/core/facilitator";
+import type { Address } from "@solana/kit";
+import { createSolanaRpc } from "@solana/kit";
 import type { Database } from "@pincerpay/db";
 import { transactions, agents } from "@pincerpay/db";
+import { deriveSmartAccountPda, deriveSettingsPda, deriveSpendingLimitPda } from "@pincerpay/solana/squads";
 import type { AppEnv } from "../env.js";
 import type { Metrics } from "../metrics.js";
 import { paymentRequestSchema } from "./schemas.js";
@@ -15,6 +18,8 @@ interface SettleRouteOptions {
   onSettle?: () => void;
   /** Metrics collector */
   metrics?: Metrics;
+  /** Solana RPC URL for Squads PDA discovery (optional) */
+  solanaRpcUrl?: string;
 }
 
 export function createSettleRoute(
@@ -84,12 +89,18 @@ export function createSettleRoute(
         // Upsert agent: auto-register unknown agents on first payment
         const fromAddress = result.payer ?? "unknown";
         const agentUpsert = fromAddress !== "unknown"
-          ? db.select({ id: agents.id })
+          ? db.select({ id: agents.id, smartAccountPda: agents.smartAccountPda })
               .from(agents)
               .where(and(eq(agents.solanaAddress, fromAddress), eq(agents.merchantId, merchantId)))
               .limit(1)
               .then(async (rows) => {
-                if (rows[0]) return rows[0].id;
+                if (rows[0]) {
+                  // Fire-and-forget: discover Squads PDAs for existing agents without them
+                  if (!rows[0].smartAccountPda && network.startsWith("solana:") && options?.solanaRpcUrl) {
+                    discoverSquadsPdas(db, rows[0].id, fromAddress, options.solanaRpcUrl, logger);
+                  }
+                  return rows[0].id;
+                }
                 // Auto-register: create agent with abbreviated address as name
                 const abbrev = fromAddress.slice(0, 4) + "..." + fromAddress.slice(-4);
                 const [inserted] = await db.insert(agents).values({
@@ -98,6 +109,12 @@ export function createSettleRoute(
                   solanaAddress: fromAddress,
                   status: "active",
                 }).returning({ id: agents.id });
+
+                // Fire-and-forget: discover Squads PDAs for newly registered agent
+                if (network.startsWith("solana:") && options?.solanaRpcUrl) {
+                  discoverSquadsPdas(db, inserted.id, fromAddress, options.solanaRpcUrl, logger);
+                }
+
                 return inserted.id;
               })
               .catch(() => null)
@@ -199,4 +216,54 @@ export function createSettleRoute(
   });
 
   return app;
+}
+
+/**
+ * Fire-and-forget: Check if an agent has a Squads Smart Account on-chain.
+ * If found, update the agent record with the derived PDAs.
+ * This populates data for future Squads middleware spending limit checks.
+ */
+function discoverSquadsPdas(
+  db: Database,
+  agentId: string,
+  solanaAddress: string,
+  rpcUrl: string,
+  logger: { info(obj: Record<string, unknown>): void; warn(obj: Record<string, unknown>): void },
+): void {
+  deriveSmartAccountPda(solanaAddress as Address, 0)
+    .then(async ([smartAccountPda]) => {
+      const rpc = createSolanaRpc(rpcUrl);
+      const acctInfo = await rpc
+        .getAccountInfo(smartAccountPda, { encoding: "base64" })
+        .send();
+
+      if (!acctInfo.value) return; // No Smart Account on-chain
+
+      const [settingsPda] = await deriveSettingsPda(smartAccountPda);
+      const [spendingLimitPda] = await deriveSpendingLimitPda(smartAccountPda, 0);
+
+      await db
+        .update(agents)
+        .set({
+          smartAccountPda: smartAccountPda as string,
+          settingsPda: settingsPda as string,
+          spendingLimitPda: spendingLimitPda as string,
+        })
+        .where(eq(agents.id, agentId));
+
+      logger.info({
+        msg: "squads_pdas_discovered",
+        agentId,
+        smartAccountPda,
+        settingsPda,
+        spendingLimitPda,
+      });
+    })
+    .catch((err) => {
+      logger.warn({
+        msg: "squads_pda_discovery_error",
+        agentId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
 }

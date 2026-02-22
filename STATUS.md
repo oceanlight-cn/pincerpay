@@ -2,6 +2,41 @@
 
 Last updated: 2026-02-22
 
+## Completed — Pre-Mainnet Preparation (2026-02-22)
+
+### npm Package Publish Readiness (#49, #87)
+- [x] Root MIT LICENSE file
+- [x] Metadata added to all 7 publishable package.json files (license, description, keywords, repository, homepage, bugs, files)
+- [x] `prepublishOnly` script added to all 7 publishable packages
+- [x] Publish workflow updated: added @pincerpay/db + @pincerpay/solana to options, fixed `all` publish order (core db solana program agent merchant mcp)
+
+### Developer Experience (#50, #53)
+- [x] AGENTS.md created (repo structure, package graph, commands, architecture, env vars, conventions)
+- [x] .cursor/rules/pincerpay.mdc created (tech stack, conventions, file patterns)
+- [x] Root llms.txt created (matches dashboard public/llms.txt)
+- [x] README updated with Examples section (express-merchant, agent-weather, pincerpay-agent-demo)
+- [x] Closed stale issues #2 and #3
+
+### OFAC Compliance Screening (#19)
+- [x] Compliance module: types, OFAC SDN provider, Hono middleware, barrel export
+- [x] SDN list parser: fetches Treasury sdnlist.txt, parses crypto addresses, Set-based O(1) lookup, daily refresh
+- [x] Config: `OFAC_ENABLED` (default false) + `OFAC_REFRESH_INTERVAL_MS` (default 24h)
+- [x] Facilitator integration: middleware on /v1/settle and /v1/settle-direct, health endpoint shows compliance status
+- [x] DB schema: compliance_events table (address, result, reason, matched_list, transaction_id)
+- [x] 10 compliance tests passing
+
+### Squads SPN Integration (Phase S2)
+- [x] Squads validation middleware: extracts payer from Solana tx, checks agent status + spending limits
+- [x] Middleware returns 403 for revoked/paused agents, per-tx limit exceeded, exhausted spending limits
+- [x] Settle route enhanced: auto-discovers Squads PDAs on agent registration (fire-and-forget)
+- [x] 12 Squads validation tests passing
+- [x] Middleware pipeline: CORS > Logging > Auth > Rate limit > OFAC > Squads > Route handler
+
+### Validation
+- [x] `pnpm typecheck` — zero errors (15 tasks, 10 packages)
+- [x] `pnpm test` — 190 tests (180 passed, 10 skipped e2e devnet)
+- [x] `pnpm build` — all packages build clean including Next.js dashboard
+
 ## Completed — Kora E2E Payment Test (2026-02-22)
 
 E2E Kora gasless payment test PASSING on Solana devnet.
@@ -90,9 +125,23 @@ Kora gasless integration deployed to devnet. Squads SPN session keys still pendi
 - [x] Fix Kora signTransaction response field: `signed_transaction` (not `transaction`)
 - [x] **E2E payment test** — PASSING (2026-02-22, TX `3SFTEnH...JvbC`)
 
-### Remaining
-- [ ] Squads SPN session key integration
-- [ ] On-chain spending policies
+### Squads SPN — Validation Complete, Management Missing
+
+**What works:**
+- [x] Squads spending limit validation middleware (extracts payer from tx, checks agent status + on-chain limits)
+- [x] Auto-discovery of Smart Account PDAs on first agent payment (fire-and-forget)
+- [x] Agent SDK `SolanaSmartAgent.checkOnChainPolicy()` for pre-payment limit checks
+- [x] `maxPerTransaction` / `maxPerDay` DB fields + middleware enforcement
+- [x] Instruction builders: `createSmartAccountInstruction`, `addSpendingLimitInstruction`, `useSpendingLimitInstruction`
+
+**What's missing (users can't set limits through PincerPay):**
+- [ ] Dashboard form to edit `maxPerTransaction` / `maxPerDay` per agent (`updateAgent()` action exists but no UI form)
+- [ ] Dashboard "Create Smart Account" flow (requires wallet adapter in dashboard)
+- [ ] Dashboard "Set On-Chain Spending Limit" flow (requires wallet adapter)
+- [ ] Wallet adapter integration in dashboard (`@solana/wallet-adapter`)
+- [ ] Multi-index spending limit support (hardcoded to index 0 everywhere)
+
+**Current workaround:** Users create Smart Accounts and spending limits externally (e.g., Squads app), then PincerPay auto-discovers and validates against them.
 
 ## Phase S3: On-Chain Anchor Facilitator — Deployed to Devnet
 
@@ -121,6 +170,7 @@ Anchor program + TypeScript client + hybrid facilitator.
 - [ ] Set `LOGTAIL_SOURCE_TOKEN` env var on Railway facilitator
 
 ## Phase S4: Transfer Hooks + Compliance
+- [x] OFAC compliance screening (facilitator middleware, SDN list provider)
 - [ ] Separate Anchor compliance program (Transfer Hook authority)
 - [ ] OFAC screening in compressed accounts
 - [ ] Dashboard compliance audit log

@@ -16,6 +16,14 @@ interface HealthOptions {
   };
   /** Returns true when the server is draining (SIGTERM received) */
   isShuttingDown?: () => boolean;
+  /** OFAC compliance provider info */
+  compliance?: {
+    provider: {
+      name: string;
+      isReady: () => boolean;
+      getStats: () => { addressCount: number; lastRefresh: Date | null };
+    };
+  };
 }
 
 export function createHealthRoute(options: HealthOptions) {
@@ -69,6 +77,15 @@ export function createHealthRoute(options: HealthOptions) {
       workers: workerStatuses,
       ...(options.koraFeePayer && {
         kora: { status: "configured", feePayer: options.koraFeePayer },
+      }),
+      ...(options.compliance && {
+        compliance: {
+          enabled: true,
+          provider: options.compliance.provider.name,
+          ready: options.compliance.provider.isReady(),
+          addressCount: options.compliance.provider.getStats().addressCount,
+          lastRefresh: options.compliance.provider.getStats().lastRefresh?.toISOString() ?? null,
+        },
       }),
       ...(degradedWorkers.length > 0 && { degradedWorkers }),
     };

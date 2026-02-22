@@ -43,6 +43,11 @@ const envSchema = z.object({
 
   /** Graceful shutdown timeout in milliseconds */
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().default(10_000),
+
+  /** Enable OFAC compliance screening on settlement routes */
+  OFAC_ENABLED: z.coerce.boolean().default(false),
+  /** OFAC SDN list refresh interval in milliseconds (default: 24 hours) */
+  OFAC_REFRESH_INTERVAL_MS: z.coerce.number().default(86_400_000),
 }).refine(
   (data) => data.SOLANA_PRIVATE_KEY || data.KORA_RPC_URL,
   { message: "At least one of SOLANA_PRIVATE_KEY or KORA_RPC_URL is required", path: ["SOLANA_PRIVATE_KEY"] },

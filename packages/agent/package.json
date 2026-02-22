@@ -2,6 +2,19 @@
   "name": "@pincerpay/agent",
   "version": "0.1.0",
   "type": "module",
+  "description": "Agent SDK for PincerPay. Drop-in fetch wrapper that handles x402 payment flows automatically.",
+  "license": "MIT",
+  "homepage": "https://pincerpay.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ds1/pincerpay.git",
+    "directory": "packages/agent"
+  },
+  "bugs": {
+    "url": "https://github.com/ds1/pincerpay/issues"
+  },
+  "keywords": ["pincerpay", "x402", "usdc", "payments", "ai-agents", "solana", "agent-sdk", "payment-gateway", "stablecoin"],
+  "files": ["dist", "README.md"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -12,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"

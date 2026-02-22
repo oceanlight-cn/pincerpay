@@ -4,3 +4,4 @@ export { paywalls } from "./paywalls.js";
 export { transactions } from "./transactions.js";
 export { agents } from "./agents.js";
 export { webhookDeliveries } from "./webhook-deliveries.js";
+export { complianceEvents } from "./compliance-events.js";

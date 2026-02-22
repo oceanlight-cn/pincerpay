@@ -23,6 +23,9 @@ import { startConfirmationWorker } from "./workers/confirmation.js";
 import { setupAnchorIntegration } from "./chains/solana-anchor.js";
 import { startOnChainRecorderWorker } from "./workers/on-chain-recorder.js";
 import { startWebhookRetryWorker } from "./webhooks/dispatcher.js";
+import { OfacSdnProvider } from "./compliance/ofac-sdn.js";
+import { complianceMiddleware } from "./compliance/middleware.js";
+import { squadsMiddleware } from "./middleware/squads.js";
 import type { AppEnv } from "./env.js";
 
 const config = loadConfig();
@@ -153,6 +156,17 @@ if (anchorIntegration) {
   });
 }
 
+// ─── OFAC Compliance ───
+let ofacProvider: OfacSdnProvider | undefined;
+if (config.OFAC_ENABLED) {
+  ofacProvider = new OfacSdnProvider({
+    refreshIntervalMs: config.OFAC_REFRESH_INTERVAL_MS,
+    logger,
+  });
+  await ofacProvider.start();
+  logger.info({ msg: "ofac_compliance_enabled", refreshIntervalMs: config.OFAC_REFRESH_INTERVAL_MS });
+}
+
 // ─── Hono App ───
 const app = new Hono<AppEnv>();
 
@@ -177,6 +191,7 @@ app.route("/", createHealthRoute({
     onChainRecorder: onChainRecorderWorker,
   },
   isShuttingDown: () => shuttingDown,
+  ...(ofacProvider && { compliance: { provider: ofacProvider } }),
 }));
 
 // Public endpoints (no auth)
@@ -204,10 +219,22 @@ authenticated.use("/v1/settle", routeRateLimitMiddleware("settle", 50));
 authenticated.use("/v1/settle-direct", routeRateLimitMiddleware("settle", 50));
 authenticated.use("/v1/verify", routeRateLimitMiddleware("verify", 100));
 
+// OFAC compliance screening on settlement routes
+if (ofacProvider) {
+  authenticated.use("/v1/settle", complianceMiddleware(ofacProvider));
+  authenticated.use("/v1/settle-direct", complianceMiddleware(ofacProvider));
+}
+
+// Squads SPN spending limit validation (Solana payments only)
+const solanaRpcUrl = rpcUrls[solanaNetworks[0]] ?? "https://api.devnet.solana.com";
+authenticated.use("/v1/settle", squadsMiddleware({ db, rpcUrl: solanaRpcUrl }));
+authenticated.use("/v1/settle-direct", squadsMiddleware({ db, rpcUrl: solanaRpcUrl }));
+
 authenticated.route("/", createVerifyRoute(facilitator, { metrics }));
 authenticated.route("/", createSettleRoute(facilitator, db, {
   koraEnabled,
   metrics,
+  solanaRpcUrl,
   onSettle: () => {
     confirmationWorker.nudge();
     webhookRetryWorker.nudge();
@@ -268,6 +295,9 @@ async function shutdown(signal: string) {
     webhookRetryWorker.stop(),
     onChainRecorderWorker?.stop(),
   ]);
+
+  // 2b. Stop OFAC provider refresh timer
+  ofacProvider?.stop();
 
   // 3. Race workers + server close against timeout
   const timeout = new Promise<"timeout">((resolve) =>

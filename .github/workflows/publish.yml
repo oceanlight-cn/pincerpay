@@ -9,10 +9,12 @@ on:
         type: choice
         options:
           - "@pincerpay/core"
+          - "@pincerpay/db"
+          - "@pincerpay/solana"
+          - "@pincerpay/program"
           - "@pincerpay/agent"
           - "@pincerpay/merchant"
           - "@pincerpay/mcp"
-          - "@pincerpay/program"
           - all
       bump:
         description: "Version bump type"
@@ -60,7 +62,7 @@ jobs:
 
           PACKAGES=""
           if [ "${{ inputs.package }}" = "all" ]; then
-            PACKAGES="core agent merchant mcp program"
+            PACKAGES="core db solana program agent merchant mcp"
           else
             # Extract short name from scoped package
             PACKAGES=$(echo "${{ inputs.package }}" | sed 's/@pincerpay\///')

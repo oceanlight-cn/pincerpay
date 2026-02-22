@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.13.0 — 2026-02-22
+
+### Pre-Mainnet Preparation
+
+npm publish readiness, DX artifacts, OFAC compliance, and Squads SPN integration.
+
+#### npm Package Publish Readiness
+- Root MIT LICENSE file
+- All 7 publishable packages now have `license`, `description`, `keywords`, `repository`, `homepage`, `bugs`, `files` metadata
+- `prepublishOnly` script on all packages ensures build before publish
+- Publish workflow fixed: added `@pincerpay/db` + `@pincerpay/solana` to options, publish order corrected to dependency order (core db solana program agent merchant mcp)
+
+#### Developer Experience
+- `AGENTS.md` for AI coding assistants (repo structure, package graph, commands, architecture, env vars, conventions)
+- `.cursor/rules/pincerpay.mdc` Cursor rules (tech stack, conventions, key file patterns)
+- Root `llms.txt` for LLM discoverability
+- README updated with Examples section linking express-merchant, agent-weather, pincerpay-agent-demo
+- Closed stale issues #2, #3
+
+#### OFAC Compliance Screening (#19)
+- `ComplianceProvider` interface + `OfacSdnProvider` implementation
+- Fetches Treasury SDN list (`sdnlist.txt`), parses "Digital Currency Address" entries into `Set<string>` for O(1) lookup
+- Daily refresh (configurable via `OFAC_REFRESH_INTERVAL_MS`), fail-open on fetch errors
+- Hono middleware screens addresses on `/v1/settle` and `/v1/settle-direct`, returns 451 for sanctioned addresses
+- Health endpoint shows compliance status (provider, ready state, address count, last refresh)
+- `compliance_events` DB table for audit logging
+- `OFAC_ENABLED` env var (default false) gates the feature
+- 10 tests (provider + middleware)
+
+#### Squads SPN Validation
+- Squads spending limit middleware for settle routes
+- Extracts fee payer from base64 Solana transaction, looks up agent in DB
+- Returns 403 for revoked/paused agents, per-transaction limit exceeded, exhausted on-chain spending limits
+- Settle route auto-discovers Squads Smart Account PDAs on agent registration
+- Fail-open on RPC errors and unknown agents
+- 12 tests (agent status, limits, edge cases)
+
+#### Test Results
+- 190 tests total (180 passed, 10 skipped e2e devnet)
+- Zero typecheck errors across 10 packages
+- All packages build clean
+
 ## 0.12.0 — 2026-02-22
 
 ### Kora Gasless Integration — Deployed to Devnet

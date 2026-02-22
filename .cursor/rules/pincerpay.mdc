@@ -1,0 +1,54 @@
+---
+description: PincerPay monorepo conventions and architecture
+globs: **/*.{ts,tsx,js,json}
+---
+
+# PincerPay
+
+On-chain payment gateway for the agentic economy. AI agents pay USDC for HTTP resources via x402 protocol.
+
+## Tech Stack
+
+- **Monorepo**: pnpm 10 + Turborepo
+- **Runtime**: Node.js 22+ (TypeScript, ESM)
+- **Facilitator**: Hono 4 + @x402/core + @x402/svm (Solana primary) + @x402/evm (optional)
+- **Dashboard**: Next.js 15 + Tailwind CSS v4 + Supabase Auth
+- **Database**: PostgreSQL (Supabase) + Drizzle ORM
+- **Testing**: Vitest
+- **Primary chain**: Solana (devnet/mainnet). Base + Polygon as optional EVM.
+
+## Key Conventions
+
+- **Package manager**: Always use `pnpm`. Never npm or yarn.
+- **ESM**: All packages use `"type": "module"`. Always use `.js` extensions in TypeScript imports.
+- **Module resolution**: Packages use `"module": "NodeNext"` + `"moduleResolution": "NodeNext"` in tsconfig.
+- **Hono**: The facilitator uses Hono, not Express. Middleware pattern: `createXxxRoute()` factory functions.
+- **Drizzle ORM**: Schema in `packages/db/src/schema/`. Use Drizzle query builder, not raw SQL.
+- **Chain IDs**: Use CAIP-2 format (e.g., `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1`, `eip155:8453`).
+- **USDC amounts**: Always in base units (6 decimals). 1 USDC = 1000000.
+- **Commits**: Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
+
+## Key File Patterns
+
+- `apps/facilitator/src/routes/*.ts` - Hono route handlers (factory pattern)
+- `apps/facilitator/src/middleware/*.ts` - Hono middleware
+- `apps/facilitator/src/workers/*.ts` - Background workers (confirmation, webhooks)
+- `packages/db/src/schema/*.ts` - Drizzle table definitions
+- `packages/core/src/chains/index.ts` - Chain configs with USDC addresses
+- `packages/solana/src/kora/` - Kora gasless transaction integration
+- `packages/solana/src/squads/` - Squads smart account + spending limits
+
+## Testing
+
+- Run all tests: `pnpm test`
+- Run specific package: `pnpm --filter @pincerpay/core test`
+- Tests use vitest with `vitest run` (not watch mode)
+- Mock external services (RPC, database) in tests
+
+## Environment
+
+- Facilitator port: 4402
+- Dashboard port: 3000
+- Config validated with Zod (`apps/facilitator/src/config.ts`)
+- Solana: `SOLANA_PRIVATE_KEY` or `KORA_RPC_URL` (at least one required)
+- EVM: `FACILITATOR_PRIVATE_KEY` (optional)

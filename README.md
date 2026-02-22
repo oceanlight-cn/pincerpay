@@ -143,6 +143,14 @@ pnpm test
 
 47 tests across 5 suites (core, agent, merchant, facilitator).
 
+## Examples
+
+| Example | Description |
+|---|---|
+| [`examples/express-merchant`](examples/express-merchant/) | Express merchant with PincerPay middleware |
+| [`examples/agent-weather`](examples/agent-weather/) | AI agent paying for weather API data |
+| [`pincerpay-agent-demo`](https://github.com/ds1/pincerpay-agent-demo) | Standalone agent demo repository |
+
 ## License
 
 MIT
