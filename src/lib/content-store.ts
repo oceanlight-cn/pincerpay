@@ -48,8 +48,8 @@ export function listContent(status: ContentStatus, filter?: ContentFilter): Cont
 
   // Sort by scheduled_for date, then by created_at
   results.sort((a, b) => {
-    const dateA = a.frontmatter.scheduled_for ?? a.frontmatter.created_at;
-    const dateB = b.frontmatter.scheduled_for ?? b.frontmatter.created_at;
+    const dateA = a.frontmatter.scheduled_for ?? a.frontmatter.created_at ?? "";
+    const dateB = b.frontmatter.scheduled_for ?? b.frontmatter.created_at ?? "";
     return dateA.localeCompare(dateB);
   });
 

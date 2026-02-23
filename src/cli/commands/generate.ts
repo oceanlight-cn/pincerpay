@@ -105,7 +105,8 @@ async function generateEntry(
   }
 
   const env = getEnv();
-  const model = opts.model ?? env.DEFAULT_MODEL;
+  // Blog posts use Opus for higher quality long-form; everything else uses default (Sonnet)
+  const model = opts.model ?? (entry.channel === "blog" ? "claude-opus-4-6" : env.DEFAULT_MODEL);
   const systemPrompt = composeSystemPrompt(entry.channel, entry.type);
 
   const userMessage = [

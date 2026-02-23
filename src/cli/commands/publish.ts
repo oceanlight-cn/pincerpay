@@ -196,8 +196,10 @@ async function publishToTwitter(item: ContentFile, verbose: boolean): Promise<Pl
     const result = await postThread(tweets);
     return { success: true, platform_id: result.ids[0], platform_url: result.url };
   } else {
-    log.verbose(`  Posting tweet: ${item.body.slice(0, 50)}...`, verbose);
-    const result = await postTweet(item.body.trim());
+    // Strip code fences that the LLM sometimes wraps output in
+    const text = item.body.trim().replace(/^```[\w]*\n?/, "").replace(/\n?```$/, "").trim();
+    log.verbose(`  Posting tweet: ${text.slice(0, 50)}...`, verbose);
+    const result = await postTweet(text);
     return { success: true, platform_id: result.id, platform_url: result.url };
   }
 }

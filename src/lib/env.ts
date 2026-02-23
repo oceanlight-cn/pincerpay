@@ -8,10 +8,13 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1, "ANTHROPIC_API_KEY is required"),
 
   // X/Twitter (optional — features disabled if missing)
-  X_API_KEY: z.string().optional(),
-  X_API_SECRET: z.string().optional(),
+  X_CONSUMER_KEY: z.string().optional(),
+  X_CONSUMER_KEY_SECRET: z.string().optional(),
   X_ACCESS_TOKEN: z.string().optional(),
-  X_ACCESS_SECRET: z.string().optional(),
+  X_ACCESS_TOKEN_SECRET: z.string().optional(),
+  X_BEARER_TOKEN: z.string().optional(),
+  X_CLIENT_SECRET_ID: z.string().optional(),
+  X_CLIENT_SECRET: z.string().optional(),
 
   // Reddit (optional)
   REDDIT_CLIENT_ID: z.string().optional(),
@@ -60,7 +63,7 @@ export function isChannelConfigured(channel: string): boolean {
   const env = getEnv();
   switch (channel) {
     case "twitter":
-      return !!(env.X_API_KEY && env.X_API_SECRET && env.X_ACCESS_TOKEN && env.X_ACCESS_SECRET);
+      return !!(env.X_CONSUMER_KEY && env.X_CONSUMER_KEY_SECRET && env.X_ACCESS_TOKEN && env.X_ACCESS_TOKEN_SECRET);
     case "reddit":
       return !!(env.REDDIT_CLIENT_ID && env.REDDIT_CLIENT_SECRET && env.REDDIT_USERNAME && env.REDDIT_PASSWORD);
     case "youtube":

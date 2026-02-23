@@ -39,7 +39,11 @@ npm run discord-bot                            # Start Discord bot
 
 ## Blockers
 
-- Platform API keys needed in `.env` for publishing (Reddit, YouTube, Discord)
+- Platform API keys needed in `.env` for publishing (Reddit blocked on account age/karma)
+- Discord and YouTube channels not yet created — content generation disabled for these channels
+  - **TODO when ready**: Re-enable Discord/YouTube in `prompts/system.md` (remove "Channel Restrictions" section), restore commented-out entries in `config/content-calendar.yaml`, and revert "demo video" references in `config/brand-voice.md` Twitter section
+- Twitter threads disabled — using single tweets only for now
+  - **TODO when ready**: Convert `# thread deferred` comments back to thread entries in `config/content-calendar.yaml`
 
 ## Inventory
 

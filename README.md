@@ -7,7 +7,7 @@ Local CLI tool for generating, reviewing, and publishing marketing content acros
 ```bash
 npm install
 cp .env.example .env
-# Add your ANTHROPIC_API_KEY and platform keys to .env
+# Add your platform keys to .env
 
 # Preview what content is due this week
 npx tsx src/cli/index.ts calendar --status

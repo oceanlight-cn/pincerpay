@@ -7,8 +7,8 @@ title: >-
 channel: twitter
 type: tweet
 status: draft
-created_at: '2026-02-20T21:48:07.101Z'
-updated_at: '2026-02-20T21:48:07.101Z'
+created_at: '2026-02-23T00:51:59.712Z'
+updated_at: '2026-02-23T00:51:59.712Z'
 scheduled_for: '2026-02-25T15:00:00Z'
 published_at: null
 platform_id: null
@@ -30,11 +30,9 @@ metrics:
 ```
 Stripe charges $0.30 per transaction.
 
-For a $0.01 API call, that's a 3,100% fee.
+A $0.01 API call costs $0.31 on card rails. That's a 3,100% fee.
 
-PincerPay: ~$0.0001. Same call. No card rails. No minimums.
+PincerPay settles the same call for ~$0.0001 in USDC on Solana.
 
-Math is math.
-
-pincerpay.com
+We built it for machines. pincerpay.com
 ```
