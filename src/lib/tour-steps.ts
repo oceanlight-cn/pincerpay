@@ -30,7 +30,7 @@ export const tourSteps: TourStep[] = [
     target: "spending-limits",
     title: "Spending Policies",
     description:
-      "Guardrails are critical. The per-request limit caps any single payment, while the daily limit is a hard budget ceiling. The agent enforces these before signing anything.",
+      "Guardrails are critical. The per-transaction limit caps any single payment, while the daily limit resets at UTC midnight. These are enforced both agent-side (before signing) and facilitator-side (Squads SPN middleware).",
     position: "right",
   },
   {
@@ -55,7 +55,7 @@ export const tourSteps: TourStep[] = [
     target: "flow-visualizer",
     title: "x402 Payment Flow",
     description:
-      "Watch the 6-step flow: HTTP request → 402 challenge → policy check → sign payment → settlement → data delivered. This all happens in under a second on Solana.",
+      "Watch the payment flow: HTTP request → 402 challenge → sign → verify → settle → data delivered. When a Squads Smart Account is enabled, an SPN policy validation step appears before settlement.",
     position: "left",
   },
   {
@@ -85,7 +85,7 @@ export const tourSteps: TourStep[] = [
     target: "send-button",
     title: "Send Premium Request",
     description:
-      "Same flow, higher cost. The agent checks spending policies before signing — if this request would blow the budget, it refuses automatically.",
+      "Same flow, higher cost. The agent checks maxPerTransaction and maxPerDay policies before signing. If it would exceed limits, it refuses automatically. Try setting the agent to 'paused' or 'revoked' to see facilitator-side rejections.",
     position: "top",
     autoAction: "send-request",
     actionDelay: 4000,

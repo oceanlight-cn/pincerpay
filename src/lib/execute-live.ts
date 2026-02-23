@@ -9,7 +9,7 @@ export async function executeLive(
   agent: AgentConfig,
   currentSpend: number
 ): Promise<ExecutionResult> {
-  const dailyLimit = parseFloat(agent.dailyLimit);
+  const maxPerDay = parseFloat(agent.maxPerDay);
   const startTime = Date.now();
   const steps: FlowStep[] = [];
 
@@ -33,6 +33,16 @@ export async function executeLive(
       solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
       facilitatorUrl: process.env.FACILITATOR_URL,
     });
+
+    // Wire up spending policies from agent config
+    const maxPerTxBase = Math.round(parseFloat(agent.maxPerTransaction) * 1_000_000);
+    const maxPerDayBase = Math.round(maxPerDay * 1_000_000);
+    if (agentClient.setPolicy) {
+      agentClient.setPolicy({
+        maxPerTransaction: String(maxPerTxBase),
+        maxPerDay: String(maxPerDayBase),
+      });
+    }
 
     const response = await agentClient.fetch(`http://localhost:3001${endpoint.path}`);
     const data = await response.json();
@@ -93,14 +103,23 @@ export async function executeLive(
       response: data,
       cost: endpoint.price,
       totalSpent: newTotalSpent.toFixed(3),
-      remainingBudget: (dailyLimit - newTotalSpent).toFixed(3),
+      remainingBudget: (maxPerDay - newTotalSpent).toFixed(3),
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+    // Map SDK error messages to error codes
+    const errorCode = errorMessage.includes("per-transaction") || errorMessage.includes("Exceeds per")
+      ? ("PER_TX_LIMIT_EXCEEDED" as const)
+      : errorMessage.includes("daily") || errorMessage.includes("Daily")
+      ? ("DAILY_LIMIT_EXCEEDED" as const)
+      : undefined;
+
     steps.push({
       id: `step-${steps.length + 1}`,
       type: "error",
-      label: "Execution Failed",
-      detail: error instanceof Error ? error.message : "Unknown error",
+      label: errorCode ?? "Execution Failed",
+      detail: errorMessage,
       status: "error",
       duration: Date.now() - startTime,
       delay: 0,
@@ -110,7 +129,8 @@ export async function executeLive(
       steps,
       cost: "0",
       totalSpent: currentSpend.toFixed(3),
-      remainingBudget: (dailyLimit - currentSpend).toFixed(3),
+      remainingBudget: (maxPerDay - currentSpend).toFixed(3),
+      errorCode,
     };
   }
 }

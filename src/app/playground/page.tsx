@@ -29,8 +29,11 @@ function PlaygroundInner() {
   const [agentConfig, setAgentConfig] = useState<AgentConfig>({
     walletAddress: "",
     chain: "solana-devnet",
-    maxPerRequest: "0.10",
-    dailyLimit: "1.00",
+    maxPerTransaction: "0.10",
+    maxPerDay: "1.00",
+    status: "active",
+    smartAccountPda: "",
+    onChainLimit: "",
   });
   const [selectedEndpoint, setSelectedEndpoint] = useState<DemoEndpoint | null>(null);
   const [flowSteps, setFlowSteps] = useState<FlowStep[]>([]);
@@ -117,6 +120,17 @@ function PlaygroundInner() {
           const newSpend = parseFloat(result.totalSpent);
           setSessionSpend(newSpend);
 
+          // Decrement on-chain limit for successful payments
+          if (agentConfig.smartAccountPda && !result.errorCode) {
+            const currentOnChain = parseFloat(agentConfig.onChainLimit) || 0;
+            const pricePaid = parseFloat(result.cost) || 0;
+            const newOnChain = Math.max(0, currentOnChain - pricePaid);
+            setAgentConfig((prev) => ({
+              ...prev,
+              onChainLimit: newOnChain.toFixed(3),
+            }));
+          }
+
           setTransactionLog((prev) => [
             ...prev,
             {
@@ -200,6 +214,9 @@ function PlaygroundInner() {
     setTourActive(true);
   }, []);
 
+  const hasSmartAccount = agentConfig.smartAccountPda.length > 0;
+  const onChainLimit = hasSmartAccount ? parseFloat(agentConfig.onChainLimit) || 0 : undefined;
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
       <div data-tour="playground-header" className="mb-6 flex items-center justify-between">
@@ -231,8 +248,10 @@ function PlaygroundInner() {
           />
           <SpendTracker
             totalSpent={sessionSpend}
-            dailyLimit={parseFloat(agentConfig.dailyLimit) || 1}
+            maxPerDay={parseFloat(agentConfig.maxPerDay) || 1}
             transactions={transactionLog}
+            onChainEnabled={hasSmartAccount}
+            onChainLimit={onChainLimit}
           />
         </div>
 

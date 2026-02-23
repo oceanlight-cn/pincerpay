@@ -3,6 +3,7 @@ export type FlowStepType =
   | "challenge"
   | "sign"
   | "verify"
+  | "spn-check"
   | "settle"
   | "response"
   | "error";
@@ -29,11 +30,23 @@ export interface DemoEndpoint {
   mockResponse: unknown;
 }
 
+export type AgentStatus = "active" | "paused" | "revoked";
+
+export type SpendingErrorCode =
+  | "AGENT_REVOKED"
+  | "AGENT_PAUSED"
+  | "PER_TX_LIMIT_EXCEEDED"
+  | "DAILY_LIMIT_EXCEEDED"
+  | "SPENDING_LIMIT_EXHAUSTED";
+
 export interface AgentConfig {
   walletAddress: string;
   chain: string;
-  maxPerRequest: string;
-  dailyLimit: string;
+  maxPerTransaction: string;
+  maxPerDay: string;
+  status: AgentStatus;
+  smartAccountPda: string; // empty = no Smart Account
+  onChainLimit: string; // simulated on-chain remaining amount (USDC)
 }
 
 export interface ExecutionResult {
@@ -43,6 +56,7 @@ export interface ExecutionResult {
   txHash?: string;
   totalSpent: string;
   remainingBudget: string;
+  errorCode?: SpendingErrorCode;
 }
 
 export interface TransactionLogEntry {

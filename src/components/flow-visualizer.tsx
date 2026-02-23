@@ -16,6 +16,16 @@ function StepIcon({ status, type }: { status: FlowStep["status"]; type: FlowStep
     );
   }
   if (status === "complete") {
+    // SPN check gets a shield icon
+    if (type === "spn-check") {
+      return (
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/20">
+          <svg className="h-3.5 w-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+      );
+    }
     return (
       <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green/20">
         <svg className="h-3.5 w-3.5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -41,6 +51,11 @@ function StepIcon({ status, type }: { status: FlowStep["status"]; type: FlowStep
   );
 }
 
+/** Check if a label looks like an error code (all caps + underscores) */
+function isErrorCode(label: string): boolean {
+  return /^[A-Z_]+$/.test(label);
+}
+
 export function FlowVisualizer({ steps, transactionLog }: FlowVisualizerProps) {
   return (
     <div data-tour="flow-visualizer" className="rounded-xl border border-border bg-bg-card p-4">
@@ -49,7 +64,7 @@ export function FlowVisualizer({ steps, transactionLog }: FlowVisualizerProps) {
       {steps.length === 0 ? (
         <div className="py-8 text-center text-sm text-text-dim">
           Waiting for a request&hellip;<br />
-          <span className="text-text-dim/60">The 6-step x402 payment flow will appear here</span>
+          <span className="text-text-dim/60">The x402 payment flow will appear here</span>
         </div>
       ) : (
         <div className="space-y-1">
@@ -66,19 +81,28 @@ export function FlowVisualizer({ steps, transactionLog }: FlowVisualizerProps) {
               {/* Content */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`text-sm font-medium ${
-                      step.status === "error"
-                        ? "text-red"
-                        : step.status === "active"
-                        ? "text-accent"
-                        : step.status === "complete"
-                        ? "text-text"
-                        : "text-text-dim"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
+                  {/* Error code badge */}
+                  {step.status === "error" && isErrorCode(step.label) ? (
+                    <span className="rounded bg-red/15 px-1.5 py-0.5 font-mono text-xs font-medium text-red">
+                      {step.label}
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-sm font-medium ${
+                        step.status === "error"
+                          ? "text-red"
+                          : step.status === "active"
+                          ? "text-accent"
+                          : step.type === "spn-check"
+                          ? "text-accent"
+                          : step.status === "complete"
+                          ? "text-text"
+                          : "text-text-dim"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  )}
                   {step.duration !== undefined && step.status === "complete" && (
                     <span className="rounded bg-bg-input px-1.5 py-0.5 text-[10px] text-text-dim">
                       {step.duration}ms
