@@ -334,10 +334,33 @@ Retry-After: 45
 | `400` | Invalid request (bad schema, wrong chain, missing fields) |
 | `401` | Missing or invalid API key |
 | `402` | Payment required (returned by merchant middleware, not the facilitator) |
+| `403` | Agent spending limit exceeded or agent access revoked/paused |
 | `404` | Transaction or merchant not found |
 | `429` | Rate limit exceeded |
+| `451` | OFAC compliance block (sanctioned address) |
 | `500` | Facilitator internal error |
 | `503` | Service shutting down (includes `Retry-After: 1` header) |
+
+### Agent Spending Limit Errors (403)
+
+When an agent's payment exceeds a configured limit, the facilitator returns a 403 with a structured error body:
+
+| Code | Meaning |
+|------|---------|
+| `AGENT_REVOKED` | Agent access has been revoked by the merchant |
+| `AGENT_PAUSED` | Agent access is temporarily paused |
+| `PER_TX_LIMIT_EXCEEDED` | Payment exceeds the agent's per-transaction limit |
+| `DAILY_LIMIT_EXCEEDED` | Payment would exceed the agent's daily spending cap |
+| `SPENDING_LIMIT_EXHAUSTED` | On-chain Squads spending limit has been used up |
+
+```json
+{
+  "error": "Per-transaction spending limit exceeded",
+  "code": "PER_TX_LIMIT_EXCEEDED",
+  "maxPerTransaction": "5000000",
+  "requested": "10000000"
+}
+```
 
 Validation errors (400) include Zod issue details:
 

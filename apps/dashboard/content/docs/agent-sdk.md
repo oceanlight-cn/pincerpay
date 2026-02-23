@@ -73,7 +73,10 @@ const agent = await PincerPayAgent.create({
 
 ## Spending Policies
 
-Policies are enforced client-side before signing any transaction. If a payment would violate a policy, the SDK throws instead of signing.
+Spending limits are enforced at two layers:
+
+1. **Client-side** (SDK) — the agent SDK checks policies before signing any transaction. If a payment would violate a policy, the SDK throws instead of signing.
+2. **Server-side** (Facilitator) — the PincerPay facilitator enforces `maxPerTransaction` and `maxPerDay` for all registered agents, rejecting payments that exceed limits with a 403 error. These limits are set in the merchant dashboard.
 
 | Option | Type | Description |
 |--------|------|-------------|
@@ -98,9 +101,26 @@ const agent = await PincerPayAgent.create({
 });
 ```
 
+### Managing Policies at Runtime
+
+```typescript
+// Replace the agent's spending policy
+agent.setPolicy({
+  maxPerTransaction: "1000000",  // 1.00 USDC
+  maxPerDay: "10000000",         // 10.00 USDC
+});
+
+// Read the current policy
+const policy = agent.getPolicy();
+
+// Check today's tracked spend
+const { date, amount } = agent.getDailySpend();
+console.log(`Spent ${amount} base units on ${date}`);
+```
+
 ## Solana Smart Agent (Advanced)
 
-For agents using Squads Protocol smart accounts with on-chain spending limits:
+For agents using Squads Protocol smart accounts with on-chain spending limits. Smart Accounts can be created and managed from the PincerPay dashboard (connect your wallet, set limits, no external Squads configuration needed).
 
 ```typescript
 import { SolanaSmartAgent } from "@pincerpay/agent";
@@ -121,6 +141,33 @@ if (policy.allowed) {
 // Direct on-chain settlement (bypasses x402 for Solana-native)
 const result = await agent.settleDirectly("MERCHANT_ID", "100000");
 ```
+
+### Building Squads Instructions Programmatically
+
+If you need to manage Smart Accounts from code instead of the dashboard:
+
+```typescript
+// Build a createSmartAccount instruction
+const createIx = await agent.buildCreateSmartAccountInstruction({
+  members: [agentAddress, operatorAddress],
+  threshold: 1,
+});
+
+// Build an addSpendingLimit instruction
+const addLimitIx = await agent.buildAddSpendingLimitInstruction({
+  mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC mainnet
+  amount: 10_000_000n,  // 10 USDC
+  period: 1,            // 0=OneTime, 1=Daily, 2=Weekly, 3=Monthly
+  authority: operatorAddress,
+});
+
+// Build a revokeSpendingLimit instruction
+const revokeIx = await agent.buildRevokeSpendingLimitInstruction({
+  authority: operatorAddress,
+});
+```
+
+These return Solana instructions that you sign and send with your own transaction infrastructure.
 
 ## Environment Variables
 

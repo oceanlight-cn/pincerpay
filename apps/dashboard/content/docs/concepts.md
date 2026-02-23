@@ -59,8 +59,8 @@ Autonomous spending within limits. The agent operates freely within the mandate'
 "I authorize this agent to spend up to 5 USDC/day on weather APIs."
 ```
 
-- Set by the agent's owner (human or organization)
-- Enforced client-side by the SDK, with on-chain enforcement via Squads SPN coming soon
+- Set by the agent's owner (human or organization) via the PincerPay dashboard
+- Enforced at three layers: client-side by the SDK, server-side by the facilitator (per-transaction and daily limits), and on-chain via Squads SPN spending limits
 - Suitable for routine, low-value transactions
 
 ### Cart Mandates
@@ -134,7 +134,7 @@ PincerPay is Solana-first. Solana offers:
 - **Sub-second finality** — transactions confirm in ~400ms
 - **Sub-cent fees** — a USDC transfer costs ~$0.00025
 - **Kora gasless** — agents pay gas in USDC instead of SOL (live on devnet)
-- **Squads SPN** — on-chain session keys with spending limits (coming soon)
+- **Squads SPN** — on-chain Smart Accounts with spending limits, manageable from the PincerPay dashboard (live on devnet)
 
 ### EVM (Optional Compatibility)
 
