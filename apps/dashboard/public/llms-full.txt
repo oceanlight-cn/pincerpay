@@ -2,9 +2,19 @@
 
 > On-chain payment gateway for the agentic economy. No card rails — pure stablecoin settlement.
 
-## Overview
-
 PincerPay is an x402 payment gateway that lets AI agents pay for HTTP resources using USDC. Merchants add middleware to their server; agents wrap their fetch calls. The PincerPay Facilitator verifies and broadcasts transactions on-chain. Settlement is instant, non-custodial, and final.
+
+- Website: https://pincerpay.com
+- Interactive Demo: https://demo.pincerpay.com
+- GitHub: https://github.com/ds1/pincerpay
+- Facilitator API: https://facilitator.pincerpay.com
+- OpenAPI spec: https://facilitator.pincerpay.com/openapi.json
+
+---
+
+## Getting Started
+
+Go from zero to a working PincerPay integration in 5 minutes.
 
 ### How It Works
 
@@ -15,17 +25,23 @@ PincerPay is an x402 payment gateway that lets AI agents pay for HTTP resources 
 5. Agent retries the original request with proof of payment in the X-PAYMENT header
 6. Merchant verifies the receipt and serves the resource
 
-### Protocol Stack
+### Quick Start
 
-Discovery (UCP) → Trust (AP2) → Settlement (x402) → Chain Abstraction (Solana | Base | Polygon)
+1. Sign Up — Create an account at pincerpay.com/signup. You'll land in the merchant dashboard.
 
----
+2. Create Your Merchant Profile — Go to Settings and fill in: Business name, Wallet address (Solana or EVM), Supported chains (solana recommended).
 
-## Merchant SDK (@pincerpay/merchant)
+3. Generate an API Key — In Settings, scroll to API Keys and click Generate Key. Copy it — it's shown only once. Key format: `pp_live_xxxxxxxxxxxx...`.
 
-Install: npm install @pincerpay/merchant
+4. Create a Paywall — Go to Paywalls and click New Paywall: Endpoint (e.g. `GET /api/weather`), Price (e.g. `0.01` USDC), Description.
 
-### Express Middleware
+5. Install the Merchant SDK:
+
+```bash
+npm install @pincerpay/merchant
+```
+
+6. Add Middleware:
 
 ```typescript
 import express from "express";
@@ -50,6 +66,278 @@ app.use(
 app.get("/api/weather", (req, res) => {
   res.json({ temp: 72, condition: "sunny" });
 });
+
+app.listen(3000);
+```
+
+7. Test It:
+
+```typescript
+import { PincerPayAgent } from "@pincerpay/agent";
+
+const agent = await PincerPayAgent.create({
+  chains: ["solana-devnet"],
+  solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+});
+
+const res = await agent.fetch("http://localhost:3000/api/weather");
+const data = await res.json();
+console.log(data); // { temp: 72, condition: "sunny" }
+```
+
+---
+
+## Quickstart: Merchant
+
+Accept your first USDC payment from an AI agent in under 10 minutes.
+
+### Prerequisites
+
+- Node.js 22+
+- A Solana wallet with a devnet address
+- A PincerPay account with an API key (https://pincerpay.com/signup)
+
+### Step 1: Create the project
+
+```bash
+mkdir my-merchant && cd my-merchant
+npm init -y
+npm install @pincerpay/merchant express
+npm install -D tsx typescript @types/express
+```
+
+Create a `.env` file:
+
+```bash
+PINCERPAY_API_KEY=pp_live_your_api_key_here
+MERCHANT_ADDRESS=YourSolanaWalletAddress
+```
+
+### Step 2: Write the server
+
+```typescript
+import express from "express";
+import { pincerpay } from "@pincerpay/merchant";
+
+const app = express();
+
+app.use(
+  pincerpay({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: process.env.MERCHANT_ADDRESS!,
+    routes: {
+      "GET /api/weather": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Current weather data",
+      },
+    },
+  })
+);
+
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
+app.get("/api/weather", (_req, res) => {
+  res.json({
+    temperature: 72,
+    conditions: "sunny",
+    location: "San Francisco",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.listen(3001, () => {
+  console.log("Merchant running at http://localhost:3001");
+});
+```
+
+### Step 3: Run and test
+
+```bash
+npx tsx --env-file=.env server.ts
+```
+
+Free endpoint returns data directly:
+
+```bash
+curl http://localhost:3001/api/health
+# {"status":"ok"}
+```
+
+Paywalled endpoint returns 402 with x402 payment instructions:
+
+```bash
+curl -i http://localhost:3001/api/weather
+# HTTP/1.1 402 Payment Required
+```
+
+### Hono Variant
+
+```typescript
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { pincerpayHono } from "@pincerpay/merchant";
+
+const app = new Hono();
+
+app.use(
+  "*",
+  pincerpayHono({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: process.env.MERCHANT_ADDRESS!,
+    routes: {
+      "GET /api/weather": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Current weather data",
+      },
+    },
+  })
+);
+
+app.get("/api/weather", (c) => c.json({ temp: 72, condition: "sunny" }));
+
+serve({ fetch: app.fetch, port: 3001 });
+```
+
+---
+
+## Quickstart: Agent
+
+Give your AI agent a wallet and make its first autonomous payment.
+
+### Prerequisites
+
+- Node.js 22+
+- Solana CLI (optional, for key generation)
+- Devnet USDC from the Circle faucet (https://faucet.circle.com)
+
+### Step 1: Generate a Solana keypair
+
+```bash
+solana-keygen new --outfile agent-keypair.json --no-bip39-passphrase
+solana address -k agent-keypair.json
+```
+
+### Step 2: Fund the wallet
+
+SOL (for gas):
+
+```bash
+solana airdrop 2 <your-agent-address> --url devnet
+```
+
+USDC (for payments): Go to https://faucet.circle.com, select Solana, Devnet, USDC.
+
+### Step 3: Install the SDK
+
+```bash
+mkdir my-agent && cd my-agent
+npm init -y
+npm install @pincerpay/agent
+npm install -D tsx typescript
+```
+
+### Step 4: Write the agent
+
+```typescript
+import { PincerPayAgent } from "@pincerpay/agent";
+
+async function main() {
+  const agent = await PincerPayAgent.create({
+    chains: ["solana-devnet"],
+    solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+  });
+
+  console.log(`Agent address: ${agent.solanaAddress}`);
+
+  const merchantUrl = process.env.MERCHANT_URL ?? "http://localhost:3001";
+  const response = await agent.fetch(`${merchantUrl}/api/weather`);
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log("Received:", JSON.stringify(data, null, 2));
+  }
+}
+
+main().catch(console.error);
+```
+
+### Step 5: Run it
+
+```bash
+AGENT_SOLANA_KEY=your_base58_private_key npx tsx agent.ts
+```
+
+### Step 6: Add spending policies
+
+```typescript
+const agent = await PincerPayAgent.create({
+  chains: ["solana-devnet"],
+  solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+  policies: [
+    {
+      maxPerTransaction: "100000",  // 0.10 USDC max per payment
+      maxPerDay: "1000000",         // 1.00 USDC max per day
+      allowedChains: ["solana-devnet"],
+    },
+  ],
+});
+```
+
+Policy options:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| maxPerTransaction | string | Max USDC per single payment (base units, 6 decimals) |
+| maxPerDay | string | Max USDC per rolling 24-hour window |
+| allowedMerchants | string[] | Only pay these wallet addresses |
+| allowedChains | string[] | Only pay on these chains |
+
+USDC base units: $0.01 = "10000", $0.10 = "100000", $1.00 = "1000000", $10.00 = "10000000".
+
+---
+
+## Merchant SDK (@pincerpay/merchant)
+
+Accept USDC payments from AI agents with Express or Hono middleware.
+
+Install: `npm install @pincerpay/merchant`
+
+### Express Middleware
+
+```typescript
+import express from "express";
+import { pincerpay } from "@pincerpay/merchant";
+
+const app = express();
+
+app.use(
+  pincerpay({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: "YOUR_SOLANA_WALLET_ADDRESS",
+    routes: {
+      "GET /api/weather": {
+        price: "0.01",
+        chain: "solana",
+        description: "Current weather data",
+      },
+      "GET /api/forecast": {
+        price: "0.05",
+        chain: "solana",
+        description: "7-day forecast",
+      },
+    },
+  })
+);
+
+app.get("/api/weather", (req, res) => {
+  res.json({ temp: 72, condition: "sunny" });
+});
+
+app.listen(3000);
 ```
 
 ### Hono Middleware
@@ -74,6 +362,12 @@ app.use(
     },
   })
 );
+
+app.get("/api/weather", (c) => {
+  return c.json({ temp: 72, condition: "sunny" });
+});
+
+export default app;
 ```
 
 ### Configuration
@@ -88,6 +382,7 @@ pincerpay() accepts a PincerPayConfig object:
 | routes | Record<string, RoutePaywallConfig> | Yes | Map of endpoint patterns to paywall config |
 
 Route config options:
+
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | price | string | Yes | Price in USDC (e.g. "0.01") |
@@ -95,11 +390,36 @@ Route config options:
 | chains | string[] | No | Multiple accepted chains |
 | description | string | No | Description shown to agents in 402 response |
 
+### Supported Chains
+
+| Shorthand | Network | Use |
+|-----------|---------|-----|
+| solana | Solana Mainnet | Production |
+| solana-devnet | Solana Devnet | Testing |
+| base | Base Mainnet | Production (EVM) |
+| base-sepolia | Base Sepolia | Testing (EVM) |
+| polygon | Polygon Mainnet | Production (EVM) |
+| polygon-amoy | Polygon Amoy | Testing (EVM) |
+
+### Helpers
+
+toBaseUnits() — Convert human-readable USDC to base units (6 decimals):
+
+```typescript
+import { toBaseUnits } from "@pincerpay/merchant";
+
+toBaseUnits("0.01");  // "10000"
+toBaseUnits("1.00");  // "1000000"
+toBaseUnits("10.00"); // "10000000"
+```
+
 ---
 
 ## Agent SDK (@pincerpay/agent)
 
-Install: npm install @pincerpay/agent
+Give your AI agent a wallet. Pay for any paywalled resource automatically.
+
+Install: `npm install @pincerpay/agent`
 
 ### Basic Usage
 
@@ -117,11 +437,23 @@ const agent = await PincerPayAgent.create({
   ],
 });
 
+// Drop-in replacement for fetch
 const response = await agent.fetch("https://api.example.com/weather");
 const data = await response.json();
 ```
 
 agent.fetch() is a drop-in replacement for the standard fetch() API. When it receives a 402 response, it automatically signs a USDC payment and retries.
+
+### What Happens Under the Hood
+
+When agent.fetch() receives a 402 Payment Required response:
+
+1. Reads the payment requirements from the response headers
+2. Validates the request against your spending policies
+3. Signs a USDC transfer for the requested amount
+4. Sends the signed transaction to the PincerPay facilitator
+5. Retries the original request with proof of payment
+6. Returns the successful response
 
 ### EVM Agents
 
@@ -144,6 +476,11 @@ const agent = await PincerPayAgent.create({
 
 ### Spending Policies
 
+Spending limits are enforced at two layers:
+
+1. Client-side (SDK) — checks policies before signing. If a payment would violate a policy, the SDK throws instead of signing.
+2. Server-side (Facilitator) — enforces maxPerTransaction and maxPerDay for all registered agents, rejecting with 403.
+
 | Option | Type | Description |
 |--------|------|-------------|
 | maxPerTransaction | string | Max USDC per single payment (base units, 6 decimals) |
@@ -151,7 +488,21 @@ const agent = await PincerPayAgent.create({
 | allowedMerchants | string[] | Restrict payments to specific wallet addresses |
 | allowedChains | string[] | Restrict to specific chains |
 
+### Managing Policies at Runtime
+
+```typescript
+agent.setPolicy({
+  maxPerTransaction: "1000000",  // 1.00 USDC
+  maxPerDay: "10000000",         // 10.00 USDC
+});
+
+const policy = agent.getPolicy();
+const { date, amount } = agent.getDailySpend();
+```
+
 ### Solana Smart Agent (Squads Protocol)
+
+For agents using Squads Protocol smart accounts with on-chain spending limits:
 
 ```typescript
 import { SolanaSmartAgent } from "@pincerpay/agent";
@@ -164,7 +515,185 @@ const agent = await SolanaSmartAgent.create({
 });
 
 const policy = await agent.checkOnChainPolicy("100000");
+if (policy.allowed) {
+  const response = await agent.fetch("https://api.example.com/data");
+}
 ```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| AGENT_SOLANA_KEY | For Solana | Solana private key (base58 encoded) |
+| AGENT_EVM_KEY | For EVM | EVM private key (hex, 0x prefixed) |
+
+---
+
+## x402: HTTP-Native Payments
+
+How the x402 protocol turns HTTP 402 into a concrete payment flow for AI agents.
+
+HTTP status code 402 ("Payment Required") has existed since 1997. The x402 protocol finally gives it a concrete implementation: agents pay per-request in USDC, with no accounts, API keys, or invoicing.
+
+### The Flow
+
+1. Agent sends GET /api/data to a merchant
+2. Merchant returns 402 Payment Required with a JSON body:
+
+```json
+{
+  "x402Version": 2,
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+      "amount": "10000",
+      "resource": "https://merchant.com/api/data",
+      "payTo": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+      "extra": {
+        "name": "Premium weather data",
+        "facilitatorUrl": "https://facilitator.pincerpay.com"
+      }
+    }
+  ]
+}
+```
+
+3. Agent signs a USDC transfer and POSTs it to the facilitator's /v1/settle endpoint
+4. Facilitator verifies the transaction, broadcasts it on-chain
+5. Agent retries the original request with the receipt in the X-PAYMENT header
+6. Merchant verifies the receipt and serves the resource
+
+### Why This Matters
+
+- No API keys to manage — agents pay per-request, no account creation needed
+- No rate limits — every request that pays gets served
+- No invoicing — settlement is instant, on-chain, final
+- Any HTTP endpoint — works with REST, GraphQL, file downloads, anything over HTTP
+
+### The Facilitator
+
+The PincerPay Facilitator is the intermediary that verifies and broadcasts transactions:
+
+1. Verify — checks that the signed transaction matches the payment requirements
+2. Broadcast — submits the transaction on-chain
+3. Confirm — monitors confirmation status and notifies merchants via webhooks
+
+---
+
+## AP2: Authorization Protocol
+
+How AP2 mandates control what agents can spend and when humans need to approve.
+
+AP2 adds authorization scoping to agent payments. While x402 handles the settlement mechanics, AP2 answers: "Is this agent allowed to make this payment?"
+
+### Intent Mandates
+
+Autonomous spending within limits. The agent operates freely within the mandate's constraints.
+
+Example: "I authorize this agent to spend up to 5 USDC/day on weather APIs."
+
+- Set by the agent's owner via the PincerPay dashboard
+- Enforced at three layers: client-side by the SDK, server-side by the facilitator, and on-chain via Squads SPN
+- Suitable for routine, low-value transactions
+
+### Cart Mandates
+
+Human-in-the-loop approval for specific purchases. The agent proposes, a human approves or rejects.
+
+- Used for high-value or unusual transactions
+- Maps to n8n's human-in-the-loop and AI SDK's needsApproval
+
+### Payment Mandates
+
+Execution-level authorization. A signed instruction that the facilitator validates before broadcasting. Single-use, time-bounded, amount-specific.
+
+### Double-Lock Enforcement
+
+PincerPay's "Double-Lock" combines x402 and AP2: the facilitator only broadcasts a transaction if both the x402 payment is valid and the AP2 mandate authorizes it.
+
+---
+
+## UCP: Agent-Readable Commerce Discovery
+
+How UCP manifests let agents discover what a merchant sells, how to pay, and what they'll get.
+
+Without UCP, an agent needs hardcoded knowledge of every API. With UCP, any agent can browse any merchant's offerings at runtime.
+
+### The Manifest
+
+Merchants publish a /.well-known/ucp JSON manifest:
+
+```json
+{
+  "name": "WeatherAPI",
+  "description": "Real-time weather data for AI agents",
+  "version": "1.0",
+  "payment": {
+    "handler": "pincerpay",
+    "chains": ["solana"],
+    "token": "USDC"
+  },
+  "endpoints": [
+    {
+      "path": "/api/weather",
+      "method": "GET",
+      "price": "0.01",
+      "description": "Current weather for a given location",
+      "params": {
+        "city": { "type": "string", "required": true }
+      }
+    }
+  ]
+}
+```
+
+### How Agents Use It
+
+1. Agent fetches https://merchant.com/.well-known/ucp
+2. Agent reads available endpoints, prices, and required parameters
+3. Agent decides whether to purchase based on its mandate and budget
+4. Agent calls the endpoint, handles the x402 flow, gets the data
+
+### Generating a Manifest
+
+The PincerPay MCP server includes a generate-ucp-manifest tool that creates a manifest from your paywall configuration.
+
+---
+
+## Chain Architecture
+
+Solana-first design with optional EVM compatibility for Base and Polygon.
+
+### Solana (Primary)
+
+- Sub-second finality — transactions confirm in ~400ms
+- Sub-cent fees — a USDC transfer costs ~$0.00025
+- Kora gasless — agents pay gas in USDC instead of SOL (live on devnet)
+- Squads SPN — on-chain Smart Accounts with spending limits, manageable from the PincerPay dashboard
+
+### Optimistic Finality
+
+For payments under $1 USDC, PincerPay releases the resource after the transaction is broadcast to the mempool (~200ms) rather than waiting for block confirmation.
+
+### Gas Passthrough
+
+PincerPay never subsidizes gas. On Solana, agents pay a small SOL fee (~$0.00025) per transaction. With Kora integration, agents can pay gas in USDC instead.
+
+### EVM (Optional Compatibility)
+
+Base and Polygon are supported for EVM-native agents and merchants. ERC-7715 session keys supported for scoped agent permissions.
+
+### Chain Identifiers
+
+| Shorthand | CAIP-2 ID | Network |
+|-----------|-----------|---------|
+| solana | solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp | Solana Mainnet |
+| solana-devnet | solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1 | Solana Devnet |
+| base | eip155:8453 | Base Mainnet |
+| base-sepolia | eip155:84532 | Base Sepolia |
+| polygon | eip155:137 | Polygon Mainnet |
+| polygon-amoy | eip155:80002 | Polygon Amoy |
 
 ---
 
@@ -172,114 +701,381 @@ const policy = await agent.checkOnChainPolicy("100000");
 
 Base URL: https://facilitator.pincerpay.com
 
-### POST /verify
+### Authentication
 
-Verify a signed payment without broadcasting.
+Authenticated endpoints require the x-pincerpay-api-key header:
+
+```
+x-pincerpay-api-key: pp_live_xxxxxxxxxxxx
+```
+
+Public endpoints (/v1/supported, /health, /metrics, /openapi.json) do not require authentication.
+
+### POST /v1/verify
+
+Verify a signed payment transaction without broadcasting.
 
 Request:
+
 ```json
 {
-  "x402Version": 1,
-  "network": "solana",
-  "payload": {
-    "signature": "base64-encoded-signed-transaction",
-    "resource": "https://merchant.com/api/weather",
-    "payTo": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
-    "maxAmountRequired": "10000"
+  "paymentPayload": { },
+  "paymentRequirements": {
+    "scheme": "exact",
+    "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+    "amount": "1000000",
+    "payTo": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
   }
 }
 ```
 
-Response (200): { "valid": true, "message": "Payment verified" }
-Response (400): { "valid": false, "message": "Insufficient payment amount" }
+Response (200): `{ "isValid": true, "payer": "AgentWalletAddress..." }`
+Response (200 invalid): `{ "isValid": false, "invalidReason": "INSUFFICIENT_AMOUNT", "invalidMessage": "..." }`
 
-### POST /settle
+### POST /v1/settle
 
-Verify and broadcast a signed payment on-chain. Returns a receipt.
+Verify and broadcast a signed payment on-chain. Records the transaction, auto-registers the agent if new, and dispatches a webhook.
 
-Request: Same format as /verify.
+Same request schema as /v1/verify.
 
 Response (200):
+
 ```json
 {
   "success": true,
-  "network": "solana",
-  "txHash": "5UxK3...abc",
-  "receipt": "base64-encoded-receipt-token",
-  "settledAt": "2026-02-20T12:00:00Z"
+  "transaction": "5UxK3...abc",
+  "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+  "payer": "AgentWalletAddress..."
 }
 ```
 
-### GET /supported
+Transactions under 1 USDC are classified as optimistic — the resource is released after mempool broadcast (~200ms).
 
-Returns supported chains, tokens, and payment schemes.
+### POST /v1/settle-direct
 
-Response (200):
+Direct on-chain settlement via the Anchor program (Solana only). Prepares settlement accounts for client-side signing against the on-chain program.
+
+Request:
+
 ```json
 {
-  "x402Version": 1,
-  "chains": [
-    { "network": "solana", "tokens": ["USDC"], "schemes": ["exact"] },
-    { "network": "base", "tokens": ["USDC"], "schemes": ["exact"] },
-    { "network": "polygon", "tokens": ["USDC"], "schemes": ["exact"] }
+  "agentAddress": "AgentSolanaWalletAddress...",
+  "merchantId": "uuid-of-merchant",
+  "amount": "1000000",
+  "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
+}
+```
+
+### GET /v1/status/:txHash
+
+Look up a transaction by on-chain hash or Solana signature.
+
+Transaction statuses: pending, mempool, optimistic, confirmed, failed.
+
+### GET /v1/supported
+
+Returns supported payment schemes and networks. No authentication required.
+
+```json
+{
+  "kinds": [
+    { "scheme": "exact", "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1" },
+    { "scheme": "exact", "network": "eip155:8453" }
   ]
 }
 ```
 
+### GET /health
+
+Health check. Returns service status, database connectivity, and background worker health.
+
+### GET /metrics
+
+Real-time metrics: settlement/verify counters by chain and status, latency percentiles (p50/p95/p99), error counts by route.
+
+### GET /openapi.json
+
+OpenAPI 3.1.0 specification.
+
+### Rate Limiting
+
+| Scope | Limit |
+|-------|-------|
+| Global (all authenticated routes) | 120 req/min |
+| /v1/settle | 50 req/min |
+| /v1/settle-direct | 50 req/min |
+| /v1/verify | 100 req/min |
+
+Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset. When exceeded: 429 with Retry-After header.
+
+### Error Codes
+
+| HTTP Status | Meaning |
+|-------------|---------|
+| 200 | Success |
+| 400 | Invalid request |
+| 401 | Missing or invalid API key |
+| 402 | Payment required (from merchant middleware, not facilitator) |
+| 403 | Agent spending limit exceeded or access revoked/paused |
+| 404 | Transaction or merchant not found |
+| 429 | Rate limit exceeded |
+| 451 | OFAC compliance block (sanctioned address) |
+| 500 | Facilitator internal error |
+| 503 | Service shutting down |
+
+Agent spending limit error codes (403): AGENT_REVOKED, AGENT_PAUSED, PER_TX_LIMIT_EXCEEDED, DAILY_LIMIT_EXCEEDED, SPENDING_LIMIT_EXHAUSTED.
+
 ### Webhooks
 
-Events: payment.received, payment.confirmed, payment.failed
+Events: payment.settled, payment.confirmed, payment.failed
 
 Payload:
+
 ```json
 {
-  "event": "payment.confirmed",
-  "timestamp": "2026-02-20T12:00:05Z",
-  "data": {
-    "transactionId": "tx_abc123",
-    "network": "solana",
+  "event": "payment.settled",
+  "transaction": {
     "txHash": "5UxK3...abc",
-    "amount": "10000",
-    "token": "USDC",
-    "payTo": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
-    "payFrom": "AgentWalletAddress...",
-    "resource": "https://merchant.com/api/weather"
+    "chainId": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+    "amount": "1000000",
+    "fromAddress": "AgentWalletAddress...",
+    "toAddress": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+    "status": "optimistic",
+    "endpoint": "https://merchant.com/api/weather"
   }
 }
 ```
 
+Delivery: POST with JSON body. Timeout: 10s. Retries: up to 5 attempts with exponential backoff (1s, 5s, 30s, 2min, 10min).
+
 ---
 
-## Core Concepts
+## Testing
 
-### x402 Protocol
-HTTP 402 "Payment Required" with structured JSON body. The 402 response includes: amount, token (USDC), network (solana/base/polygon), recipient address, and facilitator URL.
+Set up devnet/testnet environments for local development and testing.
 
-### AP2 Authorization
-- Intent Mandates: Autonomous spending within limits (e.g., "up to 5 USDC/day on weather APIs")
-- Cart Mandates: Human-in-the-loop approval for high-value purchases
-- Payment Mandates: Execution-level signed instructions, single-use, time-bounded
+Zero-setup option: The interactive demo (https://demo.pincerpay.com/playground) simulates the full payment flow in your browser with no wallet, tokens, or environment setup required.
 
-### UCP Discovery
-Merchants publish /.well-known/ucp JSON manifest declaring endpoints, prices, supported chains, and PincerPay handler. Agents read this to discover purchasable resources.
+### Devnet Configuration
 
-### Supported Chains
+Merchant:
 
-| Shorthand | Network | Use |
-|-----------|---------|-----|
-| solana | Solana Mainnet | Production (primary) |
-| solana-devnet | Solana Devnet | Testing |
-| base | Base Mainnet | Production (EVM) |
-| base-sepolia | Base Sepolia | Testing (EVM) |
-| polygon | Polygon Mainnet | Production (EVM) |
-| polygon-amoy | Polygon Amoy | Testing (EVM) |
+```typescript
+pincerpay({
+  apiKey: process.env.PINCERPAY_API_KEY!,
+  merchantAddress: "YOUR_DEVNET_WALLET",
+  routes: {
+    "GET /api/weather": {
+      price: "0.01",
+      chain: "solana-devnet",
+      description: "Weather data",
+    },
+  },
+})
+```
 
-### USDC Amounts
+Agent:
 
-All amounts use 6 decimal places:
-- $0.01 = "10000"
-- $0.10 = "100000"
-- $1.00 = "1000000"
+```typescript
+const agent = await PincerPayAgent.create({
+  chains: ["solana-devnet"],
+  solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+});
+```
+
+### Getting Test USDC
+
+| Chain | Faucet |
+|-------|--------|
+| Solana Devnet | https://faucet.circle.com — select Solana, USDC |
+| Base Sepolia | https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet |
+| Polygon Amoy | https://faucet.polygon.technology/ |
+
+### End-to-End Test Script
+
+```typescript
+import express from "express";
+import { pincerpay } from "@pincerpay/merchant";
+import { PincerPayAgent } from "@pincerpay/agent";
+
+const app = express();
+app.use(
+  pincerpay({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: process.env.MERCHANT_WALLET!,
+    routes: {
+      "GET /api/data": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Test data",
+      },
+    },
+  })
+);
+app.get("/api/data", (req, res) => res.json({ result: "success" }));
+
+const server = app.listen(4000);
+
+const agent = await PincerPayAgent.create({
+  chains: ["solana-devnet"],
+  solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+});
+
+const res = await agent.fetch("http://localhost:4000/api/data");
+console.log(await res.json()); // { result: "success" }
+
+server.close();
+```
+
+---
+
+## FAQ
+
+### Who pays gas fees?
+
+Agents always pay gas. On Solana, agents pay a small SOL fee (typically <$0.001). PincerPay never subsidizes gas.
+
+### What is optimistic finality?
+
+For payments under $1 USDC, PincerPay releases the resource after the transaction is broadcast to the mempool (~200ms) rather than waiting for block confirmation.
+
+### Which chain should I choose?
+
+Start with solana-devnet for testing. For production, solana offers the lowest fees and fastest finality. Use EVM chains (Base, Polygon) if your agents are EVM-native.
+
+### Can I try PincerPay without writing code?
+
+Yes. The interactive demo (https://demo.pincerpay.com) simulates the full x402 payment flow in your browser. No wallet, tokens, or setup required. Use the guided tour (https://demo.pincerpay.com/playground?tour=1) for a narrated walkthrough.
+
+### What format are webhook payloads?
+
+Webhooks send a POST request with a JSON body containing: txHash, status, amount, chain, and endpointPattern. Configure your webhook URL in Settings.
+
+---
+
+## Example: Next.js Merchant
+
+Next.js 15 + Hono catch-all route handler with PincerPay paywall middleware.
+
+Hono is mounted inside a Next.js catch-all route handler (src/app/api/[...path]/route.ts). The pincerpayHono middleware intercepts paywalled routes and returns 402.
+
+Endpoints: GET /api/health (free), GET /api/weather (0.001 USDC), GET /api/joke (0.001 USDC).
+
+```typescript
+// src/app/api/[...path]/route.ts
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
+import { pincerpayHono } from "@pincerpay/merchant";
+
+const app = new Hono().basePath("/api");
+
+app.use(
+  "*",
+  pincerpayHono({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: process.env.MERCHANT_ADDRESS!,
+    routes: {
+      "GET /api/weather": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Current weather data",
+      },
+      "GET /api/joke": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Random AI joke",
+      },
+    },
+  })
+);
+
+app.get("/health", (c) => c.json({ status: "ok" }));
+app.get("/weather", (c) => c.json({ temperature: 72, conditions: "sunny" }));
+app.get("/joke", (c) => c.json({ setup: "Why did the AI cross the road?", punchline: "To get to the other inference." }));
+
+export const GET = handle(app);
+export const POST = handle(app);
+```
+
+Source: https://github.com/ds1/pincerpay/tree/master/examples/nextjs-merchant
+
+---
+
+## Example: Express Merchant
+
+Express server with free and paywalled endpoints using PincerPay middleware.
+
+Endpoints: GET /api/health (free), GET /api/weather (0.001 USDC), GET /api/premium (0.10 USDC).
+
+```typescript
+import express from "express";
+import { pincerpay } from "@pincerpay/merchant";
+
+const app = express();
+
+app.use(
+  pincerpay({
+    apiKey: process.env.PINCERPAY_API_KEY!,
+    merchantAddress: process.env.MERCHANT_ADDRESS!,
+    routes: {
+      "GET /api/weather": {
+        price: "0.001",
+        chain: "solana-devnet",
+        description: "Current weather data",
+      },
+      "GET /api/premium": {
+        price: "0.10",
+        chains: ["solana-devnet"],
+        description: "Premium analytics data",
+      },
+    },
+  })
+);
+
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/api/weather", (_req, res) => res.json({ temperature: 72, conditions: "sunny" }));
+app.get("/api/premium", (_req, res) => res.json({ insights: [{ metric: "daily_active_agents", value: 1420 }] }));
+
+const port = process.env.PORT ?? 3001;
+app.listen(port);
+```
+
+Source: https://github.com/ds1/pincerpay/tree/master/examples/express-merchant
+
+---
+
+## Example: Weather Agent
+
+AI agent with spending policies that fetches data from a paywalled weather API.
+
+```typescript
+import { PincerPayAgent } from "@pincerpay/agent";
+
+async function main() {
+  const agent = await PincerPayAgent.create({
+    chains: ["solana-devnet"],
+    solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
+    policies: [
+      {
+        maxPerTransaction: "1000000", // 1 USDC max per tx
+        maxPerDay: "10000000",        // 10 USDC max per day
+      },
+    ],
+  });
+
+  const merchantUrl = process.env.MERCHANT_URL ?? "http://localhost:3001";
+  const response = await agent.fetch(`${merchantUrl}/api/weather`);
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log("Weather data received:", JSON.stringify(data, null, 2));
+  }
+}
+
+main().catch(console.error);
+```
+
+Source: https://github.com/ds1/pincerpay/tree/master/examples/agent-weather
 
 ---
 
@@ -290,3 +1086,5 @@ All amounts use 6 decimal places:
 - Open standard: Implements x402, not a proprietary protocol.
 - Micropayment-viable: $0.0001 per transaction vs $0.30+ on card rails.
 - Gas passthrough: PincerPay never subsidizes gas — agents pay via Kora (Solana) or meta-transactions (EVM).
+- Double-Lock: x402 payment + AP2 mandate must both validate before the facilitator broadcasts.
+- Compliance-as-a-Service: OFAC screening + reputation gating at the facilitator layer.

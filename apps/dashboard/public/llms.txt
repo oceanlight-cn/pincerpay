@@ -4,14 +4,48 @@
 
 PincerPay lets AI agents pay for HTTP resources (APIs, data, compute) using USDC stablecoins via the x402 protocol. Merchants add middleware; agents wrap fetch calls. Settlement is instant, non-custodial, and on-chain.
 
+- Website: https://pincerpay.com
+- Interactive Demo: https://demo.pincerpay.com
+- GitHub: https://github.com/ds1/pincerpay
+
 ## Docs
 
+### Overview
+
 - [Getting Started](https://pincerpay.com/docs/getting-started): 5-minute quickstart — sign up, create paywall, install SDK, test payment
+
+### Guides
+
+- [Quickstart: Merchant](https://pincerpay.com/docs/quickstart-merchant): Accept your first USDC payment from an AI agent in under 10 minutes
+- [Quickstart: Agent](https://pincerpay.com/docs/quickstart-agent): Give your AI agent a wallet and make its first autonomous payment
+
+### SDKs
+
 - [Merchant SDK](https://pincerpay.com/docs/merchant-sdk): Express and Hono middleware for accepting USDC payments from agents
 - [Agent SDK](https://pincerpay.com/docs/agent-sdk): Drop-in fetch wrapper that handles 402 payment flows automatically
-- [Core Concepts](https://pincerpay.com/docs/concepts): How x402, AP2 mandates, and UCP discovery work together
-- [API Reference](https://pincerpay.com/docs/api-reference): Facilitator REST API — /verify, /settle, /supported endpoints
+
+### Learn
+
+- [x402: HTTP-Native Payments](https://pincerpay.com/docs/x402): How the x402 protocol turns HTTP 402 into a concrete payment flow for AI agents
+- [AP2: Authorization Protocol](https://pincerpay.com/docs/ap2): How AP2 mandates control what agents can spend and when humans need to approve
+- [UCP: Agent-Readable Commerce Discovery](https://pincerpay.com/docs/ucp): How UCP manifests let agents discover what a merchant sells, how to pay, and what they'll get
+- [Chain Architecture](https://pincerpay.com/docs/chain-architecture): Solana-first design with optional EVM compatibility for Base and Polygon
+
+### Reference
+
+- [API Reference](https://pincerpay.com/docs/api-reference): Facilitator REST API — /verify, /settle, /settle-direct, /supported, /health, /metrics
 - [Testing](https://pincerpay.com/docs/testing): Devnet/testnet setup, faucets, end-to-end test scripts
+- [FAQ](https://pincerpay.com/docs/faq): Frequently asked questions about PincerPay integration and usage
+
+### Examples
+
+- [Next.js Merchant](https://pincerpay.com/docs/example-nextjs-merchant): Next.js 15 + Hono catch-all route handler with paywalled endpoints
+- [Express Merchant](https://pincerpay.com/docs/example-express-merchant): Express server with free and paywalled routes at different price tiers
+- [Weather Agent](https://pincerpay.com/docs/example-agent-weather): AI agent with spending policies that pays for weather data automatically
+
+## Full Documentation
+
+- [llms-full.txt](https://pincerpay.com/llms-full.txt): Complete documentation content for LLM ingestion
 
 ## Blog
 
@@ -22,13 +56,20 @@ PincerPay lets AI agents pay for HTTP resources (APIs, data, compute) using USDC
 - **x402 Protocol**: HTTP 402 Payment Required with structured payment requirements. Agent signs USDC transfer, facilitator verifies and broadcasts, merchant delivers resource.
 - **Non-custodial**: Agents hold their own keys. PincerPay verifies transactions but never controls funds.
 - **Solana-first**: Sub-second finality, sub-cent fees. Kora integration for gasless transactions (agents pay gas in USDC).
-- **Spending Policies**: Per-transaction limits, daily budgets, merchant allowlists enforced client-side and optionally on-chain via Squads SPN.
-- **AP2 Mandates**: Intent Mandates (autonomous limits), Cart Mandates (human approval), Payment Mandates (execution-level authorization).
-- **UCP Discovery**: /.well-known/ucp manifest for agent-readable commerce discovery.
+- **Spending Policies**: Per-transaction limits, daily budgets, merchant allowlists — enforced client-side by the SDK, server-side by the facilitator, and optionally on-chain via Squads SPN.
+- **AP2 Mandates**: Intent Mandates (autonomous limits), Cart Mandates (human approval), Payment Mandates (execution-level authorization). Double-Lock enforcement ensures both x402 and AP2 must validate.
+- **UCP Discovery**: /.well-known/ucp manifest for agent-readable commerce discovery. Agents browse merchant offerings at runtime.
+- **Optimistic Finality**: Sub-$1 payments release after mempool broadcast (~200ms) before block confirmation.
+- **Gas Passthrough**: PincerPay never subsidizes gas. Agents pay via Kora (Solana) or meta-transactions (EVM).
 
 ## Integration
 
 - npm: @pincerpay/merchant (Express/Hono middleware)
 - npm: @pincerpay/agent (fetch wrapper with auto-payment)
+- npm: @pincerpay/mcp (MCP server — 7 tools, 3 resources, 3 prompts)
+- npm: @pincerpay/core (shared types, chain configs, constants)
+- Facilitator API: https://facilitator.pincerpay.com
+- OpenAPI spec: https://facilitator.pincerpay.com/openapi.json
 - Supported chains: Solana (primary), Base, Polygon
-- Token: USDC
+- Token: USDC (all chains)
+- Interactive demo: https://demo.pincerpay.com

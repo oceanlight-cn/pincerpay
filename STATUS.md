@@ -2,6 +2,20 @@
 
 Last updated: 2026-03-03
 
+## Deployed — Docs Screenshots (2026-03-03)
+
+### Playwright Screenshot Pipeline
+- [x] Screenshots script generates 26 images: 12 tour steps, 5 component isolations, 9 doc section crops
+- [x] `deviceScaleFactor: 2` for Retina-quality output (2x pixel density)
+- [x] 6 curated screenshots published to `apps/dashboard/public/docs/`
+
+### Docs Image Embeds
+- [x] README: hero playground flow screenshot after architecture diagram
+- [x] getting-started: x402 payment flow + endpoint picker screenshots
+- [x] quickstart-agent: agent config, spend tracker, flow visualizer screenshots
+- [x] example-agent-weather: flow visualizer + response panel screenshots
+- [x] Merchant docs intentionally left image-free (no agent simulator screenshots in merchant-facing pages)
+
 ## Deployed — Docs Consolidation + Demo Integration (2026-03-03)
 
 ### Docs Single Source of Truth
@@ -105,7 +119,7 @@ E2E Kora gasless payment test PASSING on Solana devnet.
 ## Last Deploy
 - **Facilitator**: Railway — 2026-02-22T15:39Z (Kora gasless e2e passing)
 - **Kora Signer**: Railway — 2026-02-22T07:15Z (new service, `resplendent-freedom`)
-- **Dashboard**: Vercel — 2026-02-22 (SEO hardening: favicon, OG image, JSON-LD, noindex, security headers)
+- **Dashboard**: Vercel — 2026-03-03 (docs screenshots at 2x resolution)
 - **Agent Demo**: Vercel — 2026-02-22 `demo.pincerpay.com` (Squads SPN spending limits parity)
 
 ## Phase 1 MVP — Deployed to Production
