@@ -1,10 +1,10 @@
 import { PincerPayAgent } from "@pincerpay/agent";
 
 async function main() {
-  // Create a payment-enabled agent
-  const agent = new PincerPayAgent({
-    chains: ["base-sepolia"],
-    evmPrivateKey: process.env.AGENT_EVM_KEY!,
+  // Create a payment-enabled agent (async required for Solana key derivation)
+  const agent = await PincerPayAgent.create({
+    chains: ["solana-devnet"],
+    solanaPrivateKey: process.env.AGENT_SOLANA_KEY!,
     policies: [
       {
         maxPerTransaction: "1000000", // 1 USDC max per tx
@@ -13,7 +13,7 @@ async function main() {
     ],
   });
 
-  console.log(`Agent address: ${agent.evmAddress}`);
+  console.log(`Agent address: ${agent.solanaAddress}`);
   console.log(`Supported chains: ${agent.chains.join(", ")}`);
   console.log();
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { pincerpay } from "@pincerpay/merchant/express";
+import { pincerpay } from "@pincerpay/merchant";
 
 const app = express();
 
@@ -12,12 +12,12 @@ app.use(
     routes: {
       "GET /api/weather": {
         price: "0.001",
-        chain: "base-sepolia",
+        chain: "solana-devnet",
         description: "Current weather data",
       },
       "GET /api/premium": {
         price: "0.10",
-        chains: ["base-sepolia"],
+        chains: ["solana-devnet"],
         description: "Premium analytics data",
       },
     },
@@ -53,6 +53,6 @@ const port = process.env.PORT ?? 3001;
 app.listen(port, () => {
   console.log(`Example merchant running at http://localhost:${port}`);
   console.log("Paywalled endpoints:");
-  console.log("  GET /api/weather  — 0.001 USDC (Base Sepolia)");
-  console.log("  GET /api/premium  — 0.10 USDC (Base Sepolia)");
+  console.log("  GET /api/weather  — 0.001 USDC (Solana Devnet)");
+  console.log("  GET /api/premium  — 0.10 USDC (Solana Devnet)");
 });
