@@ -1,14 +1,35 @@
 # Project Status
 
-Last updated: 2026-03-02
+Last updated: 2026-03-03
 
-## Deployed — SDK Docs Reconciliation (2026-03-02)
+## Deployed — SDK Docs + Security + CI Fix (2026-03-03)
 
+### SDK Docs Reconciliation
 - [x] Fixed agent-demo merchant server: replaced non-existent curried `pay()` API with real `pincerpay({ routes })` middleware
 - [x] Fixed dashboard docs page: corrected Agent SDK snippets (solanaPrivateKey, chains, policies)
 - [x] Fixed setup wizard: corrected agent snippet + PINCERPAY_WALLET -> MERCHANT_ADDRESS env var
 - [x] Fixed agent-demo README: updated merchant code examples to match real API
-- Deployed: Dashboard (Vercel), Facilitator + Agent Demo (Railway) — 2026-03-02
+- [x] Updated examples to Solana-first patterns (agent-weather, express-merchant)
+
+### Security & Dependencies
+- [x] Patched hono 4.12.0 -> 4.12.3 (IP spoofing in AWS Lambda ALB conninfo)
+- [x] Patched rollup 4.57.1 -> 4.59.0 (arbitrary file write via path traversal)
+- [x] Patched minimatch 10.2.1 -> 10.2.3 (ReDoS via combinatorial backtracking)
+- [x] Dismissed 8 remaining Dependabot alerts (transitive deps, no fix available)
+- [x] Zero open Dependabot alerts
+
+### CI / Deployment Pipeline
+- [x] Fixed CI: marketing app `vitest` failing with no test files (added --passWithNoTests)
+- [x] Fixed Railway auto-deploy: CI was blocking deploys since monorepo migration
+- [x] Railway facilitator settings: root directory `/`, Dockerfile path `apps/facilitator/Dockerfile`, cleared custom build command
+- [x] Deployed: Dashboard (Vercel `vercel --prod`), Facilitator (Railway `railway up`)
+
+### Other
+- [x] Added examples/* to pnpm workspace
+- [x] Added initial Drizzle migration snapshot
+- [x] Added quickstart docs (merchant + agent)
+- [x] Added OpenGraph and Twitter image routes
+- [x] Added Next.js merchant example
 
 ## Completed — Pre-Mainnet Preparation (2026-02-22)
 
