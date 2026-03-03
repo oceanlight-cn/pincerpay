@@ -234,5 +234,6 @@ Install `hono` and `@hono/node-server` instead of `express`.
 
 - [Interactive Demo](https://demo.pincerpay.com) to see what agents experience when hitting your paywalled API
 - [Merchant SDK Reference](/docs/merchant-sdk) for the full configuration API
-- [Next.js Example](https://github.com/ds1/pincerpay/tree/master/examples/nextjs-merchant) for App Router integration
+- [Next.js Example](/docs/example-nextjs-merchant) for App Router integration with Hono
+- [Express Example](/docs/example-express-merchant) for a standalone Express server with multiple price tiers
 - [Testing Guide](/docs/testing) for devnet/testnet setup
