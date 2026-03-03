@@ -17,7 +17,9 @@
   "pnpm": {
     "overrides": {
       "bn.js@>=5 <5.2.3": "5.2.3",
-      "minimatch@<10.2.1": "10.2.1"
+      "minimatch@<10.2.3": "10.2.3",
+      "hono@<4.12.2": "4.12.3",
+      "rollup@>=4 <4.59.0": "4.59.0"
     }
   },
   "devDependencies": {
