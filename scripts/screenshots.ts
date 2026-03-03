@@ -7,6 +7,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 // ---------------------------------------------------------------------------
 
 const VIEWPORT = { width: 1280, height: 900 };
+const DEVICE_SCALE_FACTOR = 2; // 2× for Retina-quality screenshots
 const POLL_INTERVAL_MS = 1_000;
 const POLL_TIMEOUT_MS = 60_000;
 const OUTPUT_DIR = "screenshots";
@@ -289,7 +290,7 @@ async function main() {
     await mkdir(OUTPUT_DIR, { recursive: true });
 
     const browser = await chromium.launch();
-    const context = await browser.newContext({ viewport: VIEWPORT });
+    const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: DEVICE_SCALE_FACTOR });
 
     // --- Tour steps ---
     const tourPage = await context.newPage();
