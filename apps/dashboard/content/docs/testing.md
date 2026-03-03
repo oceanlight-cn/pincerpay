@@ -7,6 +7,8 @@ section: Reference
 
 PincerPay supports devnet and testnet chains for development. Use these to test the full payment flow without spending real USDC.
 
+> **Zero-setup option:** The [interactive demo](https://demo.pincerpay.com/playground) simulates the full payment flow in your browser with no wallet, tokens, or environment setup required.
+
 ## Devnet Configuration
 
 ### Merchant

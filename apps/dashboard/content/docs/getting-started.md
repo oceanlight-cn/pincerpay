@@ -7,6 +7,8 @@ section: Overview
 
 PincerPay is an x402 payment gateway. Merchants add middleware to accept USDC; agents wrap fetch calls to pay automatically. This guide gets you from zero to a working integration in 5 minutes.
 
+> **Want to see it first?** The [interactive demo](https://demo.pincerpay.com) walks through the full payment flow in your browser, no wallet or code required.
+
 ## How It Works
 
 ```

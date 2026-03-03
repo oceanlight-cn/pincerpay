@@ -7,6 +7,8 @@ section: Guides
 
 This tutorial walks you through creating an AI agent that can autonomously pay for API resources using USDC on Solana. By the end, your agent will fetch data from a paywalled endpoint and handle payment automatically.
 
+> **New to x402 payments?** Try the [interactive demo](https://demo.pincerpay.com/playground) first to see the payment flow in action before writing code.
+
 ## Prerequisites
 
 - **Node.js 22+** (`node --version`)
@@ -218,6 +220,7 @@ console.log(`EVM: ${agent.evmAddress}`);
 
 ## Next Steps
 
+- [Interactive Demo](https://demo.pincerpay.com/playground) to experiment with spending policies, error scenarios, and Smart Accounts
 - [Agent SDK Reference](/docs/agent-sdk) for the full API including `SolanaSmartAgent`
 - [Merchant Quickstart](/docs/quickstart-merchant) to build your own paywalled API
 - [Testing Guide](/docs/testing) for devnet setup and transaction verification

@@ -22,13 +22,21 @@ export default function Home() {
             <br />
             Add a few lines of code. Settle instantly in USDC.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/signup"
               className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
             >
               Get Started
             </Link>
+            <a
+              href="https://demo.pincerpay.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--muted)] transition-colors"
+            >
+              Try the Demo
+            </a>
             <Link
               href="/docs"
               className="px-6 py-3 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--muted)] transition-colors"

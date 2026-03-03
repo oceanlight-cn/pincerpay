@@ -5,8 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GITHUB_URL } from "@/lib/constants";
 
-const navLinks = [
+const navLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/docs", label: "Docs" },
+  { href: "https://demo.pincerpay.com", label: "Demo", external: true },
   { href: "/blog", label: "Blog" },
 ];
 
@@ -22,19 +23,30 @@ export function SiteHeader() {
             Pincer<span className="text-[var(--primary)]">Pay</span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                  pathname.startsWith(link.href)
-                    ? "text-[var(--foreground)] font-medium"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                !link.external && pathname.startsWith(link.href);
+              const className = `px-3 py-1.5 rounded-md text-sm transition-colors ${
+                isActive
+                  ? "text-[var(--foreground)] font-medium"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`;
+              return link.external ? (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={className}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link key={link.href} href={link.href} className={className}>
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         <div className="hidden sm:flex items-center gap-3">
@@ -93,20 +105,36 @@ export function SiteHeader() {
       {/* Mobile nav dropdown */}
       {mobileOpen && (
         <nav className="sm:hidden border-t border-[var(--border)] px-6 py-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className={`text-sm transition-colors ${
-                pathname.startsWith(link.href)
-                  ? "text-[var(--foreground)] font-medium"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive =
+              !link.external && pathname.startsWith(link.href);
+            const className = `text-sm transition-colors ${
+              isActive
+                ? "text-[var(--foreground)] font-medium"
+                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            }`;
+            return link.external ? (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className={className}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={className}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
           <a
             href={GITHUB_URL}
             target="_blank"

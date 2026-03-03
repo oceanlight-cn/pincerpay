@@ -38,6 +38,8 @@ const data = await response.json();
 
 ## What Happens Under the Hood
 
+> See this flow animated step by step in the [interactive demo](https://demo.pincerpay.com/playground).
+
 When `agent.fetch()` receives a `402 Payment Required` response:
 
 1. Reads the payment requirements from the response headers

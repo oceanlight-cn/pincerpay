@@ -17,6 +17,10 @@ For payments under $1 USDC, PincerPay releases the resource after the transactio
 
 Start with `solana-devnet` for testing. For production, `solana` offers the lowest fees and fastest finality. Use EVM chains (Base, Polygon) if your agents are EVM-native.
 
+## Can I try PincerPay without writing code?
+
+Yes. The [interactive demo](https://demo.pincerpay.com) simulates the full x402 payment flow in your browser. No wallet, tokens, or setup required. You can configure spending policies, trigger error scenarios, and watch each protocol step animate in real time. Use the [guided tour](https://demo.pincerpay.com/playground?tour=1) for a narrated walkthrough.
+
 ## What format are webhook payloads?
 
 Webhooks send a POST request with a JSON body containing the transaction details: `txHash`, `status`, `amount`, `chain`, and `endpointPattern`. Configure your webhook URL in Settings.
