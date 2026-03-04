@@ -11,6 +11,12 @@ export const FACILITATOR_ROUTES = {
   status: `/${API_VERSION}/status`,
   supported: `/${API_VERSION}/supported`,
   health: "/health",
+  metrics: `/${API_VERSION}/metrics`,
+  paywalls: `/${API_VERSION}/paywalls`,
+  transactions: `/${API_VERSION}/transactions`,
+  agents: `/${API_VERSION}/agents`,
+  webhooks: `/${API_VERSION}/webhooks`,
+  merchant: `/${API_VERSION}/merchant`,
 } as const;
 
 /** USDC decimals (consistent across all chains) */

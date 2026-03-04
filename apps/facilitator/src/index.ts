@@ -17,6 +17,11 @@ import { createSettleDirectRoute } from "./routes/settle-direct.js";
 import { createStatusRoute } from "./routes/status.js";
 import { createOpenApiRoute } from "./routes/openapi.js";
 import { createMetricsRoute } from "./routes/metrics.js";
+import { createPaywallRoutes } from "./routes/paywalls.js";
+import { createTransactionListRoute } from "./routes/transactions-list.js";
+import { createAgentRoutes } from "./routes/agents.js";
+import { createWebhookRoutes } from "./routes/webhooks.js";
+import { createMerchantRoute } from "./routes/merchant.js";
 import { Metrics } from "./metrics.js";
 import { serve } from "@hono/node-server";
 import { startConfirmationWorker } from "./workers/confirmation.js";
@@ -248,6 +253,16 @@ if (anchorIntegration) {
   }));
 }
 authenticated.route("/", createStatusRoute(db));
+
+// CRUD + management routes (Phase 2/3)
+authenticated.use("/v1/paywalls", routeRateLimitMiddleware("paywalls-write", 30));
+authenticated.use("/v1/agents", routeRateLimitMiddleware("agents-write", 30));
+authenticated.use("/v1/webhooks", routeRateLimitMiddleware("webhooks", 30));
+authenticated.route("/", createPaywallRoutes(db));
+authenticated.route("/", createTransactionListRoute(db));
+authenticated.route("/", createAgentRoutes(db));
+authenticated.route("/", createWebhookRoutes(db));
+authenticated.route("/", createMerchantRoute(db));
 
 app.route("/", authenticated);
 

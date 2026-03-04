@@ -24,7 +24,7 @@ export function createPincerPayMcpServer(config: PincerPayMcpConfig = {}) {
   const server = new McpServer(
     {
       name: "pincerpay",
-      version: "0.1.0",
+      version: "0.4.0",
     },
     {
       instructions:
@@ -35,7 +35,16 @@ export function createPincerPayMcpServer(config: PincerPayMcpConfig = {}) {
         "- Merchant (accept payments): use the `integrate-merchant` prompt → scaffold-x402-middleware → validate-payment-config → generate-ucp-manifest\n" +
         "- Agent developer (make payments): use the `integrate-agent` prompt → scaffold-agent-client → estimate-gas-cost\n" +
         "- Unclear: use the `get-started` prompt to triage\n" +
-        "- Debugging: use the `debug-transaction` prompt\n\n" +
+        "- Debugging: use the `debug-transaction` prompt\n" +
+        "- Paywall management: use the `manage-paywalls` prompt\n" +
+        "- Payment monitoring: use the `monitor-payments` prompt\n\n" +
+        "OPERATIONAL TOOLS (require API key):\n" +
+        "- Paywall CRUD: list-paywalls, create-paywall, update-paywall, delete-paywall\n" +
+        "- Transactions: list-transactions, check-transaction-status, verify-payment\n" +
+        "- Agents: list-agents, update-agent\n" +
+        "- Webhooks: list-webhooks, retry-webhook\n" +
+        "- Account: get-merchant-profile\n" +
+        "- Health: check-facilitator-health, get-settlement-metrics\n\n" +
         "KEY GOTCHAS to always warn about:\n" +
         "1. Route `price` uses human-readable USDC (\"0.01\"), but spending `policies` use base units with 6 decimals (\"10000\" = $0.01). Using \"0.10\" in a policy causes BigInt() to throw.\n" +
         "2. ESM required: \"type\": \"module\" in package.json — SDKs are ESM-only.\n" +
