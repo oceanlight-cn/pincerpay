@@ -17,7 +17,7 @@
     "url": "https://github.com/ds1/pincerpay/issues"
   },
   "keywords": ["pincerpay", "x402", "usdc", "payments", "ai-agents", "solana", "payment-gateway", "stablecoin"],
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
