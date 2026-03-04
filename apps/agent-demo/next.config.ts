@@ -4,9 +4,11 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const isVercel = !!process.env.VERCEL;
+
 const nextConfig: NextConfig = {
-  output: "standalone",
-  outputFileTracingRoot: path.join(__dirname, "../../"),
+  output: isVercel ? "standalone" : undefined,
+  outputFileTracingRoot: isVercel ? path.join(__dirname, "../../") : undefined,
   transpilePackages: ["@pincerpay/agent", "@pincerpay/merchant", "@pincerpay/core"],
   webpack: (config) => {
     // Prevent css-loader from resolving @import "tailwindcss" before PostCSS.
