@@ -573,6 +573,88 @@ if (policy.allowed) {
 
 ---
 
+## MCP Server (@pincerpay/mcp)
+
+Connect PincerPay to Claude Code, Cursor, Windsurf, and any MCP-compatible AI assistant.
+
+Install: `claude mcp add pincerpay -- npx -y @pincerpay/mcp` (Claude Code) or add to your client's MCP config JSON.
+
+### Quick Start
+
+Claude Code (one command):
+
+```bash
+claude mcp add pincerpay -- npx -y @pincerpay/mcp
+```
+
+Claude Desktop / Cursor / Windsurf (JSON config):
+
+```json
+{
+  "mcpServers": {
+    "pincerpay": {
+      "command": "npx",
+      "args": ["-y", "@pincerpay/mcp"],
+      "env": {
+        "PINCERPAY_API_KEY": "pp_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Remote (Streamable HTTP):
+
+```bash
+npx @pincerpay/mcp --transport=http --port=3100 --api-key=pp_live_your_key
+```
+
+### Tools
+
+| Tool | Description | Auth Required |
+|------|-------------|:---:|
+| list-supported-chains | List supported chains and USDC configs | No |
+| estimate-gas-cost | Estimate gas fees per chain | No |
+| validate-payment-config | Validate merchant config with route pattern checks | No |
+| scaffold-x402-middleware | Generate Express/Hono/Next.js middleware | No |
+| scaffold-agent-client | Generate agent fetch wrapper with spending policies | No |
+| generate-ucp-manifest | Create commerce discovery manifest | No |
+| check-transaction-status | Query transaction status | Yes |
+
+### Resources
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Chain configs | chain://{shorthand} | Config for any of the 6 supported chains |
+| OpenAPI spec | pincerpay://openapi | Live facilitator OpenAPI spec |
+| Documentation | docs://pincerpay/{topic} | Embedded docs (5 topics) |
+
+Doc topics: getting-started, merchant, agent, troubleshooting, reference.
+
+### Prompts
+
+| Prompt | Description |
+|--------|-------------|
+| get-started | Interactive onboarding — determines your role and guides you to the right flow |
+| integrate-merchant | Step-by-step merchant SDK integration (Express, Hono, or Next.js) |
+| integrate-agent | Agent SDK setup with spending policies and gas estimates |
+| debug-transaction | Transaction troubleshooting by hash/signature |
+
+### API Key
+
+Developer tools (scaffolding, gas estimates, chain listing, config validation) work without an API key. Operations tools (transaction status) require one. Get your key from https://pincerpay.com/dashboard/settings.
+
+### CLI Options
+
+```
+--api-key=KEY           PincerPay API key (or PINCERPAY_API_KEY env var)
+--facilitator-url=URL   Custom facilitator URL (or PINCERPAY_FACILITATOR_URL)
+--transport=stdio|http  Transport type (default: stdio)
+--port=PORT             HTTP port (default: 3100, only with --transport=http)
+```
+
+---
+
 ## x402: HTTP-Native Payments
 
 How the x402 protocol turns HTTP 402 into a concrete payment flow for AI agents.
