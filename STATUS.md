@@ -12,6 +12,12 @@ All 5 @pincerpay packages updated with comprehensive README documentation and re
 - [x] `@pincerpay/agent@0.2.0` -- documented `getPolicy()`, fixed `getDailySpend()` return type (bigint not string), documented `SolanaSmartAgent` instruction builders, x402 hook enforcement, base units anti-pattern
 - [x] `@pincerpay/mcp@0.4.0` -- 20 tools (was 7 in v0.1.1), 6 prompts, full paywall CRUD, agent management, webhook observability, merchant profile
 
+## Patched -- Security (2026-03-05)
+
+- [x] hono 4.12.3 → 4.12.4: serveStatic arbitrary file access (high), setCookie attribute injection (medium), SSE field injection (medium)
+- [x] @hono/node-server 1.19.9 → 1.19.11: auth bypass via encoded slashes in serveStatic (high)
+- [x] 0 open Dependabot alerts
+
 ## TODO: Domain Reputation Remediation (2026-03-04)
 
 pincerpay.com flagged by heuristic reputation scanners (Gridinsoft 38/100, ScamAdviser 0/100). No actual malware/phishing — clean on all 26 major engines (Google SafeBrowsing, BitDefender, Kaspersky, etc.). Low scores caused by: domain age (18 days), WHOIS privacy, crypto/payment keywords, low traffic.
@@ -227,9 +233,9 @@ E2E Kora gasless payment test PASSING on Solana devnet.
 4. **Raw fetch for sendTransaction** (replaced `@solana/kit` `rpc.sendTransaction()` with raw JSON-RPC fetch)
 
 ## Last Deploy
-- **Facilitator**: Railway — 2026-02-22T15:39Z (Kora gasless e2e passing)
+- **Facilitator**: Railway — 2026-03-05 (hono 4.12.4 + @hono/node-server 1.19.11 security patches)
 - **Kora Signer**: Railway — 2026-02-22T07:15Z (new service, `resplendent-freedom`)
-- **Dashboard**: Vercel — 2026-03-04 (MCP Server docs page)
+- **Dashboard**: Vercel — 2026-03-05 (auto-deploy from security patch push)
 - **Agent Demo**: Vercel — 2026-02-22 `demo.pincerpay.com` (Squads SPN spending limits parity)
 
 ## Phase 1 MVP — Deployed to Production
