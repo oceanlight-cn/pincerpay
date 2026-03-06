@@ -29,6 +29,17 @@ export function SiteFooter() {
               </nav>
             </div>
             <div>
+              <p className="text-sm font-medium mb-2">Developers</p>
+              <nav className="flex flex-col gap-1.5">
+                <a href="https://github.com/ds1/pincerpay" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                  GitHub
+                </a>
+                <a href="https://www.npmjs.com/org/pincerpay" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                  npm
+                </a>
+              </nav>
+            </div>
+            <div>
               <p className="text-sm font-medium mb-2">Legal</p>
               <nav className="flex flex-col gap-1.5">
                 <Link href="/privacy" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
