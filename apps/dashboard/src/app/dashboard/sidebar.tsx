@@ -16,10 +16,14 @@ const navItems = [
   { href: "/dashboard/docs", label: "Docs" },
 ];
 
-export function Sidebar({ email }: { email: string }) {
+export function Sidebar({ email, isAdmin }: { email: string; isAdmin?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = useSupabase();
+
+  const items = isAdmin
+    ? [...navItems, { href: "/dashboard/admin", label: "Admin" }]
+    : navItems;
 
   const isActive = (href: string) =>
     href === "/dashboard"
@@ -39,7 +43,7 @@ export function Sidebar({ email }: { email: string }) {
         <span>Pincer<span className="text-[var(--primary)]">Pay</span></span>
       </Link>
       <nav className="flex flex-col gap-1 flex-1">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}

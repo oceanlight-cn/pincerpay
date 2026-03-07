@@ -21,9 +21,11 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  const isAdmin = user.id === process.env.ADMIN_USER_ID;
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar email={user.email ?? ""} />
+      <Sidebar email={user.email ?? ""} isAdmin={isAdmin} />
       <main className="flex-1 p-8">{children}</main>
     </div>
   );
