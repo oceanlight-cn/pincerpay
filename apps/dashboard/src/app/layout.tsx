@@ -50,7 +50,7 @@ export const metadata: Metadata = {
       "Accept USDC payments from AI agents. Add a few lines of code. Settle instantly on Solana via the x402 protocol.",
     images: [
       {
-        url: "/og-image.png",
+        url: `${BASE_URL}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: "PincerPay — On-chain payments for AI agents",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     description:
       "Accept USDC payments from AI agents. Add a few lines of code. Settle instantly on Solana via the x402 protocol.",
     creator: "@pincerpay",
-    images: ["/og-image.png"],
+    images: [`${BASE_URL}/twitter-image`],
   },
   alternates: {
     canonical: BASE_URL,
