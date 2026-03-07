@@ -30,6 +30,7 @@ packages/db/src/seed.ts
 # OS
 .DS_Store
 Thumbs.db
+*.stackdump
 
 # IDE
 .vscode/
