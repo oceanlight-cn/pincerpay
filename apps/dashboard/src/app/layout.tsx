@@ -91,6 +91,7 @@ const organizationSchema = {
   name: "PincerPay",
   url: BASE_URL,
   logo: `${BASE_URL}/icon-512.png`,
+  image: `${BASE_URL}/opengraph-image`,
   description:
     "On-chain payment gateway for AI agents. Accept USDC payments via the x402 protocol with instant settlement on Solana.",
   sameAs: ["https://x.com/pincerpay"],
@@ -103,6 +104,7 @@ const webSiteSchema = {
   url: BASE_URL,
   description:
     "Accept USDC payments from AI agents. Settle instantly on Solana via the x402 protocol.",
+  image: `${BASE_URL}/opengraph-image`,
   publisher: { "@type": "Organization", name: "PincerPay" },
 };
 

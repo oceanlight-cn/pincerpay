@@ -60,15 +60,18 @@ export default async function BlogPostPage({
     headline: post.meta.title,
     description: post.meta.description,
     datePublished: post.meta.date,
+    image: `${BASE_URL}/opengraph-image`,
     author: {
       "@type": "Organization",
       name: post.meta.author,
       url: BASE_URL,
+      logo: `${BASE_URL}/icon-512.png`,
     },
     publisher: {
       "@type": "Organization",
       name: "PincerPay",
       url: BASE_URL,
+      logo: `${BASE_URL}/icon-512.png`,
     },
     url: `${BASE_URL}/blog/${slug}`,
     keywords: post.meta.tags.join(", "),

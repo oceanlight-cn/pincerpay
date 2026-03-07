@@ -61,11 +61,19 @@ export default async function DocPage({
     "@type": "TechArticle",
     headline: doc.meta.title,
     description: doc.meta.description,
+    image: `${BASE_URL}/opengraph-image`,
     url: `${BASE_URL}/docs/${slug}`,
+    author: {
+      "@type": "Organization",
+      name: "PincerPay",
+      url: BASE_URL,
+      logo: `${BASE_URL}/icon-512.png`,
+    },
     publisher: {
       "@type": "Organization",
       name: "PincerPay",
       url: BASE_URL,
+      logo: `${BASE_URL}/icon-512.png`,
     },
     isPartOf: {
       "@type": "WebSite",
