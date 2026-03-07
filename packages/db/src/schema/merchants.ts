@@ -6,6 +6,8 @@ export const merchants = pgTable("merchants", {
   walletAddress: text("wallet_address").notNull(),
   supportedChains: text("supported_chains").array().notNull().default([]),
   webhookUrl: text("webhook_url"),
+  /** HMAC-SHA256 shared secret for webhook signature verification (hex-encoded, 32 bytes) */
+  webhookSecret: text("webhook_secret"),
   /** Supabase Auth user ID */
   authUserId: text("auth_user_id").notNull().unique(),
   /** Whether this merchant has been registered on-chain via Anchor program */

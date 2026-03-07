@@ -8,5 +8,6 @@ export type AppEnv = {
     merchantId: string;
     apiKeyId: string;
     webhookUrl?: string;
+    webhookSecret?: string;
   };
 };

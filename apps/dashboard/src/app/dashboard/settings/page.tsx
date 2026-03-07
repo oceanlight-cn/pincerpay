@@ -4,6 +4,7 @@ import { merchants, apiKeys } from "@pincerpay/db";
 import { eq } from "drizzle-orm";
 import { MerchantForm } from "./merchant-form";
 import { ApiKeysSection } from "./api-keys-section";
+import { WebhookSecretSection } from "./webhook-secret-section";
 
 async function getMerchant(authUserId: string) {
   const db = getDb();
@@ -76,6 +77,13 @@ export default async function SettingsPage() {
               </p>
             )}
           </div>
+        </section>
+      )}
+
+      {merchant && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">Webhook Signing Secret</h2>
+          <WebhookSecretSection hasSecret={!!merchant.webhookSecret} />
         </section>
       )}
 

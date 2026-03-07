@@ -212,6 +212,32 @@ pincerpay({
 });
 ```
 
+## Webhook Verification
+
+PincerPay signs every webhook delivery with your webhook secret (HMAC-SHA256). Verify the `X-PincerPay-Signature` header to ensure requests are authentic:
+
+```typescript
+import crypto from "node:crypto";
+
+function verifyWebhook(payload: string, header: string, secret: string): boolean {
+  const parts = Object.fromEntries(
+    header.split(",").map((p) => p.split("=") as [string, string])
+  );
+  const age = Math.floor(Date.now() / 1000) - Number(parts.t);
+  if (age > 300) return false; // Reject replays > 5 min
+
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${parts.t}.${payload}`)
+    .digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(parts.v1), Buffer.from(expected));
+}
+```
+
+Header format: `t=<unix-timestamp>,v1=<hmac-sha256-hex>`
+
+Your webhook secret is in the [dashboard settings](https://www.pincerpay.com/dashboard/settings). See [full docs](https://www.pincerpay.com/docs/testing) for Python examples and Express integration patterns.
+
 ## Anti-Patterns
 
 ### Don't hardcode API keys

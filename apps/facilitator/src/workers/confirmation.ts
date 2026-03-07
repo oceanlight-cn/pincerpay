@@ -6,7 +6,7 @@ import type { Database } from "@pincerpay/db";
 import { transactions } from "@pincerpay/db";
 import { CHAINS_BY_CAIP2 } from "@pincerpay/core/chains";
 import type { Logger } from "../middleware/logging.js";
-import { dispatchWebhook, getWebhookUrl } from "../webhooks/dispatcher.js";
+import { dispatchWebhook, getWebhookConfig } from "../webhooks/dispatcher.js";
 
 /** Map CAIP-2 network IDs to viem chain definitions */
 const EVM_CHAIN_MAP: Record<string, Chain> = {
@@ -394,15 +394,16 @@ async function dispatchConfirmationWebhook(
   logger: Logger,
 ): Promise<void> {
   try {
-    const webhookUrl = await getWebhookUrl(db, tx.merchantId);
-    if (!webhookUrl) return;
+    const config = await getWebhookConfig(db, tx.merchantId);
+    if (!config) return;
 
     const event = newStatus === "confirmed" ? "payment.confirmed" : "payment.failed";
 
     await dispatchWebhook(db, {
       merchantId: tx.merchantId,
       transactionId: tx.id,
-      webhookUrl,
+      webhookUrl: config.webhookUrl,
+      webhookSecret: config.webhookSecret ?? undefined,
       payload: {
         event,
         transaction: {

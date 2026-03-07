@@ -53,18 +53,21 @@ export function authMiddleware(db: Database): MiddlewareHandler<AppEnv> {
     c.set("merchantId", key.merchantId);
     c.set("apiKeyId", key.id);
 
-    // Look up merchant webhookUrl for downstream webhook dispatch
+    // Look up merchant webhook config for downstream webhook dispatch
     try {
       const [merchant] = await db
-        .select({ webhookUrl: merchants.webhookUrl })
+        .select({ webhookUrl: merchants.webhookUrl, webhookSecret: merchants.webhookSecret })
         .from(merchants)
         .where(eq(merchants.id, key.merchantId))
         .limit(1);
       if (merchant?.webhookUrl) {
         c.set("webhookUrl", merchant.webhookUrl);
       }
+      if (merchant?.webhookSecret) {
+        c.set("webhookSecret", merchant.webhookSecret);
+      }
     } catch {
-      // Non-critical — webhook URL lookup failure shouldn't block requests
+      // Non-critical — webhook config lookup failure shouldn't block requests
     }
 
     await next();

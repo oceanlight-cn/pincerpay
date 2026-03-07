@@ -116,6 +116,43 @@ Each route in `routes` accepts:
 |----------|----------|-------------|
 | `PINCERPAY_API_KEY` | Yes | Your API key from the dashboard |
 
+## Webhook Verification
+
+When you configure a webhook URL in the dashboard, PincerPay signs every webhook delivery with your webhook secret using HMAC-SHA256. Verify the signature to ensure requests are authentic.
+
+```typescript
+import crypto from "node:crypto";
+import express from "express";
+
+const WEBHOOK_SECRET = process.env.PINCERPAY_WEBHOOK_SECRET!;
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  const signature = req.headers["x-pincerpay-signature"] as string;
+  if (!signature) return res.status(401).send("Missing signature");
+
+  const parts = Object.fromEntries(
+    signature.split(",").map((p) => p.split("=") as [string, string])
+  );
+
+  const signedContent = `${parts.t}.${req.body.toString()}`;
+  const expected = crypto
+    .createHmac("sha256", WEBHOOK_SECRET)
+    .update(signedContent)
+    .digest("hex");
+
+  if (!crypto.timingSafeEqual(Buffer.from(parts.v1), Buffer.from(expected))) {
+    return res.status(401).send("Invalid signature");
+  }
+
+  // Signature valid - process the event
+  const event = JSON.parse(req.body.toString());
+  console.log(event.event, event.transaction.txHash);
+  res.sendStatus(200);
+});
+```
+
+Your webhook secret is available in the [dashboard settings](https://www.pincerpay.com/dashboard/settings). See the [Testing guide](/docs/testing) for more verification examples.
+
 ## Helpers
 
 ### `toBaseUnits()`

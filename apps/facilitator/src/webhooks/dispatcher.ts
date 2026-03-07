@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { eq, and, lte } from "drizzle-orm";
 import type { Database } from "@pincerpay/db";
 import { webhookDeliveries, merchants } from "@pincerpay/db";
@@ -33,6 +34,10 @@ interface WebhookDispatcherOptions {
 /**
  * Dispatches a webhook with automatic retry and delivery tracking.
  * First attempt is immediate; failures are queued for background retry.
+ *
+ * When `webhookSecret` is provided, each delivery includes:
+ * - `X-PincerPay-Signature`: `t=<unix-seconds>,v1=<hmac-sha256-hex>`
+ *   where the HMAC is computed over `<timestamp>.<payload-body>`.
  */
 export async function dispatchWebhook(
   db: Database,
@@ -41,10 +46,11 @@ export async function dispatchWebhook(
     transactionId?: string;
     webhookUrl: string;
     payload: WebhookPayload;
+    webhookSecret?: string;
     logger: Logger;
   },
 ): Promise<void> {
-  const { merchantId, transactionId, webhookUrl, payload, logger } = opts;
+  const { merchantId, transactionId, webhookUrl, payload, webhookSecret, logger } = opts;
   const payloadJson = JSON.stringify(payload);
 
   // Insert delivery record
@@ -62,7 +68,19 @@ export async function dispatchWebhook(
     .returning({ id: webhookDeliveries.id });
 
   // Attempt immediate delivery
-  await attemptDelivery(db, delivery.id, webhookUrl, payloadJson, 0, logger);
+  await attemptDelivery(db, delivery.id, webhookUrl, payloadJson, 0, logger, webhookSecret);
+}
+
+/**
+ * Compute the HMAC-SHA256 signature header for a webhook payload.
+ * Format: `t=<unix-seconds>,v1=<hex-digest>`
+ * The signed content is `<timestamp>.<payload>`.
+ */
+function computeSignatureHeader(secret: string, payload: string): { header: string; timestamp: number } {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signedContent = `${timestamp}.${payload}`;
+  const hmac = createHmac("sha256", secret).update(signedContent).digest("hex");
+  return { header: `t=${timestamp},v1=${hmac}`, timestamp };
 }
 
 /**
@@ -75,14 +93,21 @@ async function attemptDelivery(
   payload: string,
   attempt: number,
   logger: Logger,
+  webhookSecret?: string,
 ): Promise<void> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (webhookSecret) {
+      const { header } = computeSignatureHeader(webhookSecret, payload);
+      headers["X-PincerPay-Signature"] = header;
+    }
+
     const response = await globalThis.fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: payload,
       signal: controller.signal,
     });
@@ -216,7 +241,15 @@ export function startWebhookRetryWorker(
         // Work found — reset to base interval
         currentInterval = pollIntervalMs;
 
+        // Cache merchant webhook secrets for this batch
+        const secretCache = new Map<string, string | null>();
+
         for (const delivery of pending) {
+          if (!secretCache.has(delivery.merchantId)) {
+            const config = await getWebhookConfig(db, delivery.merchantId);
+            secretCache.set(delivery.merchantId, config?.webhookSecret ?? null);
+          }
+
           await attemptDelivery(
             db,
             delivery.id,
@@ -224,6 +257,7 @@ export function startWebhookRetryWorker(
             delivery.payload,
             delivery.attempts,
             logger,
+            secretCache.get(delivery.merchantId) ?? undefined,
           );
         }
       }
@@ -290,15 +324,29 @@ export function startWebhookRetryWorker(
   };
 }
 
+export interface WebhookConfig {
+  webhookUrl: string;
+  webhookSecret: string | null;
+}
+
 /**
  * Look up webhook URL for a merchant (used by confirmation worker).
  */
 export async function getWebhookUrl(db: Database, merchantId: string): Promise<string | null> {
+  const config = await getWebhookConfig(db, merchantId);
+  return config?.webhookUrl ?? null;
+}
+
+/**
+ * Look up webhook URL and signing secret for a merchant.
+ */
+export async function getWebhookConfig(db: Database, merchantId: string): Promise<WebhookConfig | null> {
   const [row] = await db
-    .select({ webhookUrl: merchants.webhookUrl })
+    .select({ webhookUrl: merchants.webhookUrl, webhookSecret: merchants.webhookSecret })
     .from(merchants)
     .where(eq(merchants.id, merchantId))
     .limit(1);
 
-  return row?.webhookUrl ?? null;
+  if (!row?.webhookUrl) return null;
+  return { webhookUrl: row.webhookUrl, webhookSecret: row.webhookSecret };
 }

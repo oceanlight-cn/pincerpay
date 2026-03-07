@@ -150,6 +150,7 @@ export function createSettleRoute(
                 merchantId,
                 transactionId: undefined, // transaction ID not returned by insert
                 webhookUrl,
+                webhookSecret: c.get("webhookSecret"),
                 payload: {
                   event: "payment.settled",
                   transaction: {

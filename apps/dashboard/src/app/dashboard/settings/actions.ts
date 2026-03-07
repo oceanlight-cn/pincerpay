@@ -47,11 +47,14 @@ export async function saveMerchantProfile(formData: FormData) {
       })
       .where(eq(merchants.id, existing.id));
   } else {
+    // Generate webhook signing secret on merchant creation
+    const webhookSecret = randomBytes(32).toString("hex");
     await db.insert(merchants).values({
       name,
       walletAddress,
       supportedChains: chains,
       webhookUrl,
+      webhookSecret,
       authUserId: user.id,
     });
   }
@@ -89,6 +92,30 @@ export async function createApiKey(label: string) {
 
   revalidatePath("/dashboard/settings");
   return { success: true, key: rawKey };
+}
+
+export async function regenerateWebhookSecret() {
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const db = getDb();
+  const [merchant] = await db
+    .select({ id: merchants.id })
+    .from(merchants)
+    .where(eq(merchants.authUserId, user.id))
+    .limit(1);
+
+  if (!merchant) return { success: false, error: "No merchant profile" };
+
+  const webhookSecret = randomBytes(32).toString("hex");
+  await db
+    .update(merchants)
+    .set({ webhookSecret, updatedAt: new Date() })
+    .where(eq(merchants.id, merchant.id));
+
+  revalidatePath("/dashboard/settings");
+  return { success: true, webhookSecret };
 }
 
 export async function revokeApiKey(keyId: string) {

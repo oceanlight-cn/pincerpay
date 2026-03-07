@@ -661,9 +661,30 @@ All webhook events use the same payload structure:
 
 The `status` field reflects the transaction state at the time of the event: `optimistic`, `confirmed`, or `failed`.
 
+### Signature Verification
+
+Every webhook delivery includes an `X-PincerPay-Signature` header for verifying authenticity. The header format is:
+
+```
+X-PincerPay-Signature: t=1709308800,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+```
+
+- `t` is the Unix timestamp (seconds) when the webhook was sent
+- `v1` is the HMAC-SHA256 hex digest of `<timestamp>.<payload-body>` using your webhook signing secret
+
+To verify:
+1. Parse `t` and `v1` from the header
+2. Reconstruct the signed content: `${t}.${rawRequestBody}`
+3. Compute `HMAC-SHA256(webhookSecret, signedContent)`
+4. Compare the computed digest to `v1` using a constant-time comparison
+5. Optionally reject if `t` is more than 5 minutes old (replay protection)
+
+Your webhook signing secret is available in the [dashboard settings](https://www.pincerpay.com/dashboard/settings). See the [Testing guide](/docs/testing) for verification code examples in Node.js and Python.
+
 ### Delivery
 
 - Webhooks are delivered as `POST` requests with `Content-Type: application/json`
+- Each request includes `X-PincerPay-Signature` for authenticity verification
 - Timeout: 10 seconds per attempt
 - Retries on failure: up to 5 attempts with exponential backoff (1s, 5s, 30s, 2min, 10min)
 - Delivery status is tracked in the database (`pending` → `delivered` | `retrying` → `failed`)

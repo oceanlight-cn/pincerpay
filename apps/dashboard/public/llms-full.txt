@@ -1075,7 +1075,7 @@ Yes. The interactive demo (https://demo.pincerpay.com) simulates the full x402 p
 
 ### What format are webhook payloads?
 
-Webhooks send a POST request with a JSON body containing: txHash, status, amount, chain, and endpointPattern. Configure your webhook URL in Settings.
+Webhooks send a POST request with a JSON body containing: txHash, status, amount, chain, and endpointPattern. Configure your webhook URL in Settings. Each delivery includes an `X-PincerPay-Signature` header (HMAC-SHA256) for verifying authenticity. Your signing secret is in Settings.
 
 ---
 

@@ -8,6 +8,13 @@
       "when": 1771801351000,
       "tag": "0000_bright_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772921006070,
+      "tag": "0001_messy_doomsday",
+      "breakpoints": true
     }
   ]
 }
