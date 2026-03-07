@@ -1,11 +1,11 @@
 ---
 title: "MCP Server"
-description: "Connect PincerPay to Claude Code, Cursor, Windsurf, and any MCP-compatible AI assistant."
+description: "Connect PincerPay to any MCP-compatible AI assistant."
 order: 3.5
 section: "SDKs"
 ---
 
-The `@pincerpay/mcp` package is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI coding assistants direct access to PincerPay's chain configs, code scaffolding, gas estimates, documentation, and transaction tools. Connect it to Claude Code, Cursor, Windsurf, or any MCP-compatible client.
+The `@pincerpay/mcp` package is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI coding assistants direct access to PincerPay's chain configs, code scaffolding, gas estimates, documentation, and transaction tools. Connect it to any MCP-compatible client.
 
 ## Quick Start
 

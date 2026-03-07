@@ -7,7 +7,7 @@
 
 MCP server for [PincerPay](https://pincerpay.com) — on-chain USDC payment gateway for AI agents using the [x402 protocol](https://x402.org).
 
-Works with Claude, Cursor, Windsurf, GitHub Copilot, Replit, and any MCP-compatible client.
+Works with any MCP-compatible client — Claude, Cursor, Windsurf, Copilot, Gemini, ChatGPT, Codex, DeepSeek, Replit, and more.
 
 ## Quick Start
 

@@ -575,7 +575,7 @@ if (policy.allowed) {
 
 ## MCP Server (@pincerpay/mcp)
 
-Connect PincerPay to Claude Code, Cursor, Windsurf, and any MCP-compatible AI assistant.
+Connect PincerPay to any MCP-compatible AI assistant.
 
 Install: `claude mcp add pincerpay -- npx -y @pincerpay/mcp` (Claude Code) or add to your client's MCP config JSON.
 
