@@ -16,7 +16,10 @@
     "deploy:dashboard": "source apps/dashboard/.vercel/env.sh && vercel --prod",
     "deploy:agent-demo": "source apps/agent-demo/.vercel/env.sh && vercel --prod",
     "deploy:facilitator": "railway up",
-    "screenshots": "tsx scripts/screenshots.ts"
+    "screenshots": "tsx scripts/screenshots.ts",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && pnpm test && changeset publish"
   },
   "pnpm": {
     "overrides": {
@@ -28,6 +31,8 @@
     }
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
     "@playwright/test": "^1.50",
     "turbo": "^2",
     "typescript": "^5.7",

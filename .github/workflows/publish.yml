@@ -1,35 +1,19 @@
-name: Publish to npm
+name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      package:
-        description: "Package to publish"
-        required: true
-        type: choice
-        options:
-          - "@pincerpay/core"
-          - "@pincerpay/db"
-          - "@pincerpay/solana"
-          - "@pincerpay/program"
-          - "@pincerpay/agent"
-          - "@pincerpay/merchant"
-          - "@pincerpay/mcp"
-          - all
-      bump:
-        description: "Version bump type"
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+  push:
+    branches: [master]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  publish:
+  release:
+    # Only run when changesets are present (skip routine pushes)
+    if: github.repository == 'ds1/pincerpay'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -53,32 +37,14 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Bump version and publish
+      - name: Create release PR or publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm version-packages
+          publish: pnpm release
+          title: "chore: version packages"
+          commit: "chore: version packages"
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          PACKAGES=""
-          if [ "${{ inputs.package }}" = "all" ]; then
-            PACKAGES="core db solana program agent merchant mcp"
-          else
-            # Extract short name from scoped package
-            PACKAGES=$(echo "${{ inputs.package }}" | sed 's/@pincerpay\///')
-          fi
-
-          for pkg in $PACKAGES; do
-            echo "Publishing @pincerpay/$pkg..."
-            cd packages/$pkg
-            npm version ${{ inputs.bump }} --no-git-tag-version
-            VERSION=$(node -p "require('./package.json').version")
-            pnpm publish --access public --no-git-checks
-            cd ../..
-            echo "Published @pincerpay/$pkg@$VERSION"
-          done
-
-          # Commit version bumps
-          git add -A
-          git commit -m "chore: release @pincerpay packages (${{ inputs.bump }})" || echo "No changes to commit"
-          git push
