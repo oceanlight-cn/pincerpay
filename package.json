@@ -18,7 +18,7 @@
     "deploy:facilitator": "railway up",
     "screenshots": "tsx scripts/screenshots.ts",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-plugin-version.mjs",
     "release": "pnpm build && pnpm test && changeset publish"
   },
   "pnpm": {
