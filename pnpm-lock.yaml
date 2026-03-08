@@ -51,6 +51,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.2.1
+      hono:
+        specifier: ^4.12.5
+        version: 4.12.5
       next:
         specifier: ^15.3.3
         version: 15.5.12(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -5311,6 +5314,10 @@ packages:
 
   hono@4.12.4:
     resolution: {integrity: sha512-ooiZW1Xy8rQ4oELQ++otI2T9DsKpV0M6c6cO6JGx4RTfav9poFFLlet9UMXHZnoM1yG0HWGlQLswBGX3RZmHtg==}
+    engines: {node: '>=16.9.0'}
+
+  hono@4.12.5:
+    resolution: {integrity: sha512-3qq+FUBtlTHhtYxbxheZgY8NIFnkkC/MR8u5TTsr7YZ3wixryQ3cCwn3iZbg8p8B88iDBBAYSfZDS75t8MN7Vg==}
     engines: {node: '>=16.9.0'}
 
   html-void-elements@3.0.0:
@@ -14019,6 +14026,8 @@ snapshots:
       minimalistic-crypto-utils: 1.0.1
 
   hono@4.12.4: {}
+
+  hono@4.12.5: {}
 
   html-void-elements@3.0.0: {}
 

@@ -12,22 +12,23 @@
   },
   "dependencies": {
     "@pincerpay/agent": "workspace:*",
-    "@pincerpay/merchant": "workspace:*",
     "@pincerpay/core": "workspace:*",
-    "express": "^5.1.0",
-    "next": "^15.3.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "@pincerpay/merchant": "workspace:*",
     "chalk": "^5.4.1",
-    "ora": "^8.2.0"
+    "express": "^5.1.0",
+    "hono": "^4.12.5",
+    "next": "^15.3.3",
+    "ora": "^8.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "@types/react": "^19.1.6",
-    "@types/node": "^22.15.21",
-    "concurrently": "^9.1.2",
-    "tsx": "^4.19.4",
     "@tailwindcss/postcss": "^4.1.7",
-    "tailwindcss": "^4.1.7"
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.6",
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^4.1.7",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
 }
