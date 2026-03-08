@@ -1,0 +1,13 @@
+{
+  "name": "pincerpay",
+  "description": "On-chain USDC payment gateway for AI agents. Accept and make stablecoin payments via the x402 protocol. 20 tools for paywall management, transaction monitoring, agent control, code scaffolding, and more.",
+  "version": "0.4.0",
+  "author": {
+    "name": "PincerPay",
+    "url": "https://pincerpay.com"
+  },
+  "homepage": "https://pincerpay.com",
+  "repository": "https://github.com/ds1/pincerpay",
+  "license": "MIT",
+  "keywords": ["payments", "usdc", "x402", "solana", "ai-agents", "stablecoin", "mcp", "crypto"]
+}

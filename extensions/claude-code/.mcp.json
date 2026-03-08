@@ -1,0 +1,9 @@
+{
+  "pincerpay": {
+    "command": "npx",
+    "args": ["-y", "@pincerpay/mcp"],
+    "env": {
+      "PINCERPAY_API_KEY": "${PINCERPAY_API_KEY}"
+    }
+  }
+}
