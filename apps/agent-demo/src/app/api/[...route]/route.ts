@@ -130,11 +130,27 @@ async function getHandler() {
 }
 
 export const GET = async (req: Request) => {
-  const handler = await getHandler();
-  return handler(req);
+  try {
+    const handler = await getHandler();
+    return handler(req);
+  } catch (err) {
+    console.error("[pincerpay] GET handler error:", err);
+    return new Response(JSON.stringify({ error: String(err), stack: (err as Error).stack }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+  }
 };
 
 export const POST = async (req: Request) => {
-  const handler = await getHandler();
-  return handler(req);
+  try {
+    const handler = await getHandler();
+    return handler(req);
+  } catch (err) {
+    console.error("[pincerpay] POST handler error:", err);
+    return new Response(JSON.stringify({ error: String(err), stack: (err as Error).stack }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+  }
 };
