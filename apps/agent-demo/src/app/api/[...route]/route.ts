@@ -131,6 +131,8 @@ async function getHandler() {
 
 export const GET = async (req: Request) => {
   try {
+    const url = new URL(req.url);
+    console.log("[pincerpay] GET", url.pathname, "envs:", { apiKey: !!apiKey, merchantAddress: !!merchantAddress });
     const handler = await getHandler();
     return handler(req);
   } catch (err) {
