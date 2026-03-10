@@ -3,6 +3,7 @@ import {
   deriveConfigPda,
   deriveMerchantPda,
   deriveSettlementPda,
+  deriveFeeVaultAuthorityPda,
   PINCERPAY_PROGRAM_ID,
   uuidToBytes,
   stringTo32Bytes,
@@ -15,6 +16,7 @@ import type {
   RegisterMerchantParams,
   SettlePaymentParams,
   RecordX402SettlementParams,
+  WithdrawFeesParams,
 } from "./types.js";
 
 /**
@@ -53,6 +55,11 @@ export class PincerPayProgram {
     return pda;
   }
 
+  async getFeeVaultAuthorityPda(): Promise<Address> {
+    const [pda] = await deriveFeeVaultAuthorityPda(this.programId);
+    return pda;
+  }
+
   // ─── Instruction Parameters ───
 
   /**
@@ -82,14 +89,19 @@ export class PincerPayProgram {
   /**
    * Build parameters for a settle_payment instruction.
    * Returns the derived accounts needed by the caller.
+   *
+   * @param feeVaultUsdcAccount - The USDC ATA of the fee vault authority PDA.
+   *   Create this externally before the first settlement (e.g. `spl-token create-account`
+   *   with the fee vault authority PDA as owner).
    */
   async getSettlePaymentAccounts(
-    params: SettlePaymentParams,
+    params: SettlePaymentParams & { feeVaultUsdcAccount: Address },
     currentNonce: bigint,
   ) {
     const configPda = await this.getConfigPda();
     const merchantPda = await this.getMerchantPda(params.merchantId);
     const settlementPda = await this.getSettlementPda(currentNonce);
+    const feeVaultAuthority = await this.getFeeVaultAuthorityPda();
 
     return {
       accounts: {
@@ -98,10 +110,34 @@ export class PincerPayProgram {
         settlementRecord: settlementPda,
         agentUsdcAccount: params.agentUsdcAccount,
         agent: params.agentAddress,
+        feeVaultAuthority,
+        feeVaultUsdcAccount: params.feeVaultUsdcAccount,
       },
       args: {
         amount: params.amount,
         decimals: params.decimals ?? 6,
+      },
+    };
+  }
+
+  /**
+   * Build parameters for a withdraw_fees instruction.
+   * Returns the derived accounts needed by the caller.
+   */
+  async getWithdrawFeesAccounts(params: WithdrawFeesParams) {
+    const configPda = await this.getConfigPda();
+    const feeVaultAuthority = await this.getFeeVaultAuthorityPda();
+
+    return {
+      accounts: {
+        config: configPda,
+        feeVaultAuthority,
+        feeVaultUsdcAccount: params.feeVaultUsdcAccount,
+        destinationUsdcAccount: params.destinationUsdcAccount,
+        usdcMint: params.usdcMint,
+      },
+      args: {
+        amount: params.amount,
       },
     };
   }

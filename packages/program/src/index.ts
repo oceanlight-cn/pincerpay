@@ -4,6 +4,7 @@ export {
   deriveConfigPda,
   deriveMerchantPda,
   deriveSettlementPda,
+  deriveFeeVaultAuthorityPda,
   uuidToBytes,
   stringTo32Bytes,
   txHashToBytes,
@@ -15,5 +16,6 @@ export type {
   RegisterMerchantParams,
   SettlePaymentParams,
   RecordX402SettlementParams,
+  WithdrawFeesParams,
 } from "./types.js";
 export { TX_TYPE_DIRECT, TX_TYPE_X402_RECORDED } from "./types.js";

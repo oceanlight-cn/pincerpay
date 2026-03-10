@@ -161,10 +161,10 @@ export function registerScaffoldMiddleware(server: McpServer) {
 
       const installCmd =
         framework === "express"
-          ? "npm install @pincerpay/merchant express"
+          ? "npm install @pincerpay/merchant @x402/express express"
           : framework === "nextjs"
-            ? "npm install @pincerpay/merchant hono"
-            : "npm install @pincerpay/merchant hono @hono/node-server";
+            ? "npm install @pincerpay/merchant @x402/hono hono"
+            : "npm install @pincerpay/merchant @x402/hono hono @hono/node-server";
 
       const lang = typescript ? "typescript" : "javascript";
 

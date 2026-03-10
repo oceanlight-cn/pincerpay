@@ -51,4 +51,10 @@ pub mod pincerpay_facilitator {
     ) -> Result<()> {
         instructions::record_x402_settlement::handler(ctx, amount, x402_tx_hash)
     }
+
+    /// Withdraw accumulated fees from the fee vault.
+    /// Authority-only — PDA-signed transfer from fee vault to destination.
+    pub fn withdraw_fees(ctx: Context<WithdrawFees>, amount: u64) -> Result<()> {
+        instructions::withdraw_fees::handler(ctx, amount)
+    }
 }

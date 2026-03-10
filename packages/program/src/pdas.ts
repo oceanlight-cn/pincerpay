@@ -10,6 +10,7 @@ export const PINCERPAY_PROGRAM_ID = (
 const CONFIG_SEED = new TextEncoder().encode("config");
 const MERCHANT_SEED = new TextEncoder().encode("merchant");
 const SETTLEMENT_SEED = new TextEncoder().encode("settlement");
+const FEE_VAULT_SEED = new TextEncoder().encode("fee_vault");
 
 /** Derive ProgramConfig PDA: seeds = ["config"] */
 export async function deriveConfigPda(
@@ -44,6 +45,16 @@ export async function deriveSettlementPda(
   return getProgramDerivedAddress({
     programAddress: programId,
     seeds: [SETTLEMENT_SEED, nonceBytes],
+  });
+}
+
+/** Derive fee vault authority PDA: seeds = ["fee_vault"] */
+export async function deriveFeeVaultAuthorityPda(
+  programId: Address = PINCERPAY_PROGRAM_ID,
+): Promise<readonly [Address, number]> {
+  return getProgramDerivedAddress({
+    programAddress: programId,
+    seeds: [FEE_VAULT_SEED],
   });
 }
 

@@ -16,4 +16,5 @@ pub struct ProgramConfig {
 
 impl ProgramConfig {
     pub const SEED: &'static [u8] = b"config";
+    pub const FEE_VAULT_SEED: &'static [u8] = b"fee_vault";
 }

@@ -19,4 +19,7 @@ pub enum PincerPayError {
 
     #[msg("Invalid x402 transaction hash")]
     InvalidX402TxHash,
+
+    #[msg("Insufficient fee vault balance")]
+    InsufficientFeeVaultBalance,
 }

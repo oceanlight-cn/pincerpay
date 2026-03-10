@@ -54,6 +54,8 @@
         { "name": "settlement_record", "writable": true },
         { "name": "agent_usdc_account", "writable": true },
         { "name": "merchant_usdc_account", "writable": true },
+        { "name": "fee_vault_authority", "pda": { "seeds": [{ "kind": "const", "value": [102, 101, 101, 95, 118, 97, 117, 108, 116] }] } },
+        { "name": "fee_vault_usdc_account", "writable": true },
         { "name": "usdc_mint" },
         { "name": "agent", "signer": true },
         { "name": "authority", "writable": true, "signer": true },
@@ -80,6 +82,22 @@
         { "name": "amount", "type": "u64" },
         { "name": "x402_tx_hash", "type": { "array": ["u8", 64] } }
       ]
+    },
+    {
+      "name": "withdraw_fees",
+      "discriminator": [198, 212, 171, 109, 144, 215, 174, 89],
+      "accounts": [
+        { "name": "config", "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 110, 102, 105, 103] }] } },
+        { "name": "fee_vault_authority", "pda": { "seeds": [{ "kind": "const", "value": [102, 101, 101, 95, 118, 97, 117, 108, 116] }] } },
+        { "name": "fee_vault_usdc_account", "writable": true },
+        { "name": "destination_usdc_account", "writable": true },
+        { "name": "usdc_mint" },
+        { "name": "authority", "signer": true },
+        { "name": "token_program" }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
     }
   ],
   "accounts": [
@@ -102,7 +120,8 @@
     { "code": 6002, "name": "MerchantAlreadyActive", "msg": "Merchant account is already active" },
     { "code": 6003, "name": "ZeroAmount", "msg": "Settlement amount must be greater than zero" },
     { "code": 6004, "name": "Overflow", "msg": "Arithmetic overflow" },
-    { "code": 6005, "name": "InvalidX402TxHash", "msg": "Invalid x402 transaction hash" }
+    { "code": 6005, "name": "InvalidX402TxHash", "msg": "Invalid x402 transaction hash" },
+    { "code": 6006, "name": "InsufficientFeeVaultBalance", "msg": "Insufficient fee vault balance" }
   ],
   "types": [
     {
@@ -143,6 +162,7 @@
           { "name": "merchant", "type": "pubKey" },
           { "name": "merchant_account", "type": "pubKey" },
           { "name": "amount", "type": "u64" },
+          { "name": "fee_amount", "type": "u64" },
           { "name": "slot", "type": "u64" },
           { "name": "tx_type", "type": "u8" },
           { "name": "x402_tx_hash", "type": { "array": ["u8", 64] } },

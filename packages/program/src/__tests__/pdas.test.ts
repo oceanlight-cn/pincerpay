@@ -3,6 +3,7 @@ import {
   deriveConfigPda,
   deriveMerchantPda,
   deriveSettlementPda,
+  deriveFeeVaultAuthorityPda,
   uuidToBytes,
   stringTo32Bytes,
   txHashToBytes,
@@ -39,14 +40,27 @@ describe("PDA derivation", () => {
     expect(pda0).not.toBe(pda1);
   });
 
-  it("config, merchant, and settlement PDAs are all distinct", async () => {
+  it("derives fee vault authority PDA deterministically", async () => {
+    const [pda1, bump1] = await deriveFeeVaultAuthorityPda();
+    const [pda2, bump2] = await deriveFeeVaultAuthorityPda();
+    expect(pda1).toBe(pda2);
+    expect(bump1).toBe(bump2);
+    expect(typeof pda1).toBe("string");
+    expect(pda1.length).toBeGreaterThan(30);
+  });
+
+  it("config, merchant, settlement, and fee vault PDAs are all distinct", async () => {
     const [configPda] = await deriveConfigPda();
     const [merchantPda] = await deriveMerchantPda("550e8400-e29b-41d4-a716-446655440000");
     const [settlementPda] = await deriveSettlementPda(0n);
+    const [feeVaultPda] = await deriveFeeVaultAuthorityPda();
 
     expect(configPda).not.toBe(merchantPda);
     expect(configPda).not.toBe(settlementPda);
+    expect(configPda).not.toBe(feeVaultPda);
     expect(merchantPda).not.toBe(settlementPda);
+    expect(merchantPda).not.toBe(feeVaultPda);
+    expect(settlementPda).not.toBe(feeVaultPda);
   });
 });
 

@@ -27,6 +27,8 @@ export interface SettlementRecord {
   merchant: Address;
   merchantAccount: Address;
   amount: bigint;
+  /** Fee portion deducted from amount and sent to the fee vault (0 for x402 recordings) */
+  feeAmount: bigint;
   slot: bigint;
   txType: number;
   x402TxHash: Uint8Array;
@@ -61,4 +63,14 @@ export interface RecordX402SettlementParams {
   agentAddress: Address;
   amount: bigint;
   x402TxHash: string;
+}
+
+/** Parameters for building a withdraw_fees instruction */
+export interface WithdrawFeesParams {
+  /** The fee vault's USDC token account (source — owned by the fee vault authority PDA) */
+  feeVaultUsdcAccount: Address;
+  /** Destination USDC token account to receive withdrawn fees */
+  destinationUsdcAccount: Address;
+  usdcMint: Address;
+  amount: bigint;
 }

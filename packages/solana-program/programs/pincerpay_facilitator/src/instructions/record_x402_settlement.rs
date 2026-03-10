@@ -71,6 +71,7 @@ pub fn handler(
     settlement.merchant = merchant.owner;
     settlement.merchant_account = merchant.key();
     settlement.amount = amount;
+    settlement.fee_amount = 0; // Fee already deducted off-chain by the facilitator
     settlement.slot = clock.slot;
     settlement.tx_type = TX_TYPE_X402_RECORDED;
     settlement.x402_tx_hash = x402_tx_hash;

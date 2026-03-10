@@ -16,8 +16,10 @@ pub struct SettlementRecord {
     pub merchant: Pubkey,
     /// MerchantAccount PDA
     pub merchant_account: Pubkey,
-    /// USDC amount in base units (6 decimals)
+    /// USDC amount in base units (6 decimals) — total amount paid by the agent
     pub amount: u64,
+    /// Fee portion deducted from amount and sent to the fee vault (0 for x402 recordings)
+    pub fee_amount: u64,
     /// Slot at which this record was created
     pub slot: u64,
     /// 0 = direct on-chain settlement, 1 = x402 off-chain settlement recorded
